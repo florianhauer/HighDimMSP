@@ -37,9 +37,9 @@ void Tree::addObstacle(State& obs){
 	node->setValue(1.0f);
 }
 
-Node* Tree::getNode(State obj,int depth){
+Node* Tree::getNode(State obj,int depth,State& s){
 	Node* node=root_;
-	State s=State(rootState_);
+	s=rootState_;
 	int ldepth=0;
 	float scale=0.5;
 	while(ldepth!=depth && !node->isLeaf() && (s-obj).normSq()!=0){ //TODO maybe add epsilon tolerance

@@ -15,13 +15,15 @@ MSP::MSP(Tree* tree, int max_depth):m_tree(tree),m_path_found(false),m_alpha(0.5
 }
 
 bool MSP::init(State start,State end){
-	Node* nstart=m_tree->getNode(start);
-	Node* ngoal=m_tree->getNode(end);
+	State startc;
+	State goalc;
+	Node* nstart=m_tree->getNode(start,startc);
+	Node* ngoal=m_tree->getNode(end,goalc);
 	if(nstart->isLeaf() && ngoal->isLeaf() && !nstart->isEpsilonObstacle() && !ngoal->isEpsilonObstacle()){
-		m_current_coord=start;
+		m_current_coord=startc;
 		m_current_scale=nstart->getScale();
-		m_start_coord=start;
-		m_end_coord=end;
+		m_start_coord=startc;
+		m_end_coord=goalc;
 		m_current_path.clear();
 		m_path_cost.clear();
 		m_current_path.push_back(m_start_coord);
@@ -38,14 +40,12 @@ bool MSP::init(State start,State end){
 }
 
 bool MSP::step(){
+	std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
+			<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
 	reducedGraph();
 	kshortestpaths::YenTopKShortestPathsAlg yenAlg(m_graph, m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
-	bool got_next=false;
-	if(yenAlg.has_next()){
-		got_next=true;
-	}
 	//if solution
-	if(got_next){
+	if(yenAlg.has_next()){
 		//go forward // if goal return false;
 		kshortestpaths::BasePath* result =yenAlg.next();
 		int next_point_id=result->GetVertex(1)->getID();
@@ -54,24 +54,35 @@ bool MSP::step(){
 		m_current_path.push_back(m_nodes[next_point_id].first);
 		m_path_cost.push_back(m_cost[next_point_id]);
 
-		if(m_speed_up){
-			int mv_fwd=2;
-			while(result->length()>mv_fwd){
-				int next_point_id2=result->GetVertex(mv_fwd)->getID();
-				if(m_tree->getNode(m_nodes[next_point_id2].first)->isLeaf()){
-					m_misleading[m_nodes[next_point_id].first].insert(m_nodes[next_point_id2].first);
-					m_current_path.push_back(m_nodes[next_point_id2].first);
-					m_path_cost.push_back(m_cost[next_point_id2]);
-					next_point_id=next_point_id2;
-					++mv_fwd;
-				}else{
-					break;
-				}
-			}
-		}
+//		if(m_speed_up){
+//			int mv_fwd=2;
+//			while(result->length()>mv_fwd){
+//				int next_point_id2=result->GetVertex(mv_fwd)->getID();
+//				if(m_tree->getNode(m_nodes[next_point_id2].first)->isLeaf()){
+//					m_misleading[m_nodes[next_point_id].first].insert(m_nodes[next_point_id2].first);
+//					m_current_path.push_back(m_nodes[next_point_id2].first);
+//					m_path_cost.push_back(m_cost[next_point_id2]);
+//					next_point_id=next_point_id2;
+//					++mv_fwd;
+//				}else{
+//					break;
+//				}
+//			}
+//		}
+
+		std::cout<< "rejects before : ";
+		for(auto& c : m_misleading[m_current_coord])
+			std::cout << c << " , ";
+		std::cout << std::endl;
 
 		m_current_coord=m_nodes[next_point_id].first;
 		m_current_scale=m_nodes[next_point_id].second;
+
+
+		std::cout<< "rejects after : ";
+		for(auto& c : m_misleading[m_current_coord])
+			std::cout << c << " , ";
+		std::cout << std::endl;
 
 		if(next_point_id==m_end_index){
 			std::cout << "goal reached" << std::endl;
@@ -84,8 +95,7 @@ bool MSP::step(){
 			return true;
 		}
 
-	}
-	if(!got_next){
+	}else{
 		m_misleading[m_current_coord].clear();
 		m_nb_backtrack++;
 		m_current_path.pop_back();
@@ -117,17 +127,20 @@ bool MSP::inPath(State pt,double scale){
 }
 
 void MSP::add_node_to_reduced_vertices(Node* node,State coord, double scale){
-	if((coord-m_current_coord).norm()-0.5*sqrt(DIM)*m_current_scale*4*((*(m_tree->getDirections()))[0].max())>m_alpha*scale*4*((*(m_tree->getDirections()))[0].max()) || node->isLeaf() ){
-		if(!inPath(coord,scale)
-				&& !node->isEpsilonObstacle()
-				&& m_current_forbidden.find(coord)==m_current_forbidden.end()
-		){
-			m_nodes.push_back(std::pair<State,double>(coord,scale));
-			m_cost.push_back(cost(node));
-		}
+	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
+	if(((coord-m_current_coord).norm()-0.5*sqrt(DIM)*m_current_scale*4*((*(m_tree->getDirections()))[0].max())>m_alpha*scale*4*((*(m_tree->getDirections()))[0].max()) || node->isLeaf())
+			&& !inPath(coord,scale)
+			&& !node->isEpsilonObstacle()
+			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
+	){
+		std::cout<< "WINNER" <<std::endl;
+		m_nodes.push_back(std::pair<State,double>(coord,scale));
+		m_cost.push_back(cost(node));
 	}else{
-		for(int i=0;i<TWOPOWDIM;++i){
-			add_node_to_reduced_vertices(node->getChild(i),coord+(*(m_tree->getDirections()))[i]*scale,scale*0.5);
+		if(!node->isLeaf()){
+			for(int i=0;i<TWOPOWDIM;++i){
+				add_node_to_reduced_vertices(node->getChild(i),coord+(*(m_tree->getDirections()))[i]*scale,scale*0.5);
+			}
 		}
 	}
 }
@@ -143,6 +156,10 @@ void MSP::reducedGraph(){
 	}catch (const std::out_of_range& oor) {
 		m_current_forbidden=std::set<State>();
 	}
+	std::cout<< "rejects : ";
+	for(auto& c : m_current_forbidden)
+		std::cout << c << " , ";
+	std::cout << std::endl;
 	add_node_to_reduced_vertices(m_tree->getRoot(),m_tree->getRootState(),0.5);
 
 	int l=m_nodes.size();
@@ -166,6 +183,18 @@ void MSP::reducedGraph(){
 			m_end_index=i;
 		}
 	}
+	std::cout << "Gi:" <<std::endl;
+	for(int i=0;i<l;++i){
+		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << m_nodes[i].second << " and cost " << m_cost[i] << ", neighbor with ";
+		for(int j=i+1;j<l;++j){
+			if(neighboor(m_nodes[i],m_nodes[j])){
+				std::cout << j << " , ";
+				m_graph.add_edge(i,j,m_cost[j]);
+				m_graph.add_edge(j,i,m_cost[i]);
+			}
+		}
+		std::cout << std::endl;
+	}
 	if(m_start_index==-1){
 		std::cout << "0 start node, fail" << std::endl;
 		return;
@@ -173,14 +202,6 @@ void MSP::reducedGraph(){
 	if(m_end_index==-1){
 		std::cout << "0 end node, fail" << std::endl;
 		return;
-	}
-	for(int i=0;i<l;++i){
-		for(int j=i+1;j<l;++j){
-			if(neighboor(m_nodes[i],m_nodes[j])){
-				m_graph.add_edge(i,j,m_cost[j]);
-				m_graph.add_edge(j,i,m_cost[i]);
-			}
-		}
 	}
 }
 
@@ -199,10 +220,10 @@ double MSP::cost(Node* n){
 }
 
 bool MSP::neighboor(std::pair<State,double> &na,std::pair<State,double> &nb){
-	double l=0.5*(na.second+nb.second);
-	State diff=(na.first-nb.first).abs();
+	double l=2*(na.second+nb.second);
+	State diff=(na.first-nb.first).abs()-(*(m_tree->getDirections()))[0]*l;
 	diff.sort();
-	if(diff[DIM-1]==l && diff[DIM-1]!=diff[DIM-2])
+	if(fabs(diff[DIM-1])==0 && fabs(diff[DIM-1]-diff[DIM-2])!=0)
 		return true;
 	return false;
 }

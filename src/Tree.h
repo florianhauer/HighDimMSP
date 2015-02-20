@@ -25,7 +25,9 @@ public:
 	inline int getMaxDepth(){return maxDepth_;}									//returns the max depth
 	inline State getRootState(){return rootState_;}								//returns the spacial position of the center of the search space
 	inline std::array<State,TWOPOWDIM>* getDirections(){return &directions_;}	//returns the array of directions to find children
-	Node* getNode(State s,int depth);											//find the node corresponding to state s and depth smaller than depth
+	Node* getNode(State obj,int depth,State& s);								//find the node corresponding to state obj and depth smaller than depth, s becomes the corrected state
+	Node* getNode(State s,State& sc){return getNode(s,maxDepth_,sc);}			//find the node corresponding to state s at any depth, sc becomes the corrected state
+	Node* getNode(State obj,int depth){State s;return getNode(obj,depth,s);}	//find the node corresponding to state s and depth smaller than depth
 	Node* getNode(State s){return getNode(s,maxDepth_);}						//find the node corresponding to state s at any depth
 
 private:

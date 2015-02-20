@@ -8,9 +8,9 @@
 #ifndef PARAMS_H_
 #define PARAMS_H_
 
-#define DIM 4
-#define TWOPOWDIM 16
-#define MAX_DEPTH 3
+#define DIM 2
+#define TWOPOWDIM 4
+#define MAX_DEPTH 4
 
 
 #endif /* PARAMS_H_ */

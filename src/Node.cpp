@@ -45,7 +45,7 @@ double Node::updateValRec(){
 				if(prevVal==-1){
 					prevVal=children_[i]->getValue();
 				}else{
-					if(prevVal != children_[i]->getValue() && children_[i]->isLeaf()){
+					if(prevVal != children_[i]->getValue() || !children_[i]->isLeaf()){
 						prunable=false;
 					}
 				}
@@ -80,7 +80,7 @@ void Node::singleStageUpdate(){
 				if(prevVal==-1){
 					prevVal=children_[i]->getValue();
 				}else{
-					if(prevVal != children_[i]->getValue() && children_[i]->isLeaf()){
+					if(prevVal != children_[i]->getValue() || !children_[i]->isLeaf()){
 						prunable=false;
 					}
 				}
