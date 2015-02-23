@@ -25,7 +25,7 @@ void Tree::addObstacle(State& obs){
 	while(depth!=maxDepth_){
 		int i=0;
 		for(;i<TWOPOWDIM;++i){
-			if((s+directions_[i]*scale-obs).abs()<directions_[0]*scale){
+			if((s+directions_[i]*scale-obs).abs().isWithin(directions_[0]*scale)){
 				break;
 			}
 		}
@@ -45,7 +45,7 @@ Node* Tree::getNode(State obj,int depth,State& s){
 	while(ldepth!=depth && !node->isLeaf() && (s-obj).normSq()!=0){ //TODO maybe add epsilon tolerance
 		int i=0;
 		for(;i<TWOPOWDIM;++i){
-			if((s+directions_[i]*scale-obj).abs()<directions_[0]*scale){
+			if((s+directions_[i]*scale-obj).abs().isWithin(directions_[0]*scale)){
 				break;
 			}
 		}

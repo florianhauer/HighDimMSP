@@ -9,7 +9,7 @@
 #include <algorithm>
 
 
-MSP::MSP(Tree* tree, int max_depth):m_tree(tree),m_path_found(false),m_alpha(0.55*sqrt(DIM)),m_lambda1(0.999),m_lambda2(0.001) {
+MSP::MSP(Tree* tree, int max_depth):m_tree(tree),m_speed_up(false),m_path_found(false),m_alpha(0.55*sqrt(DIM)),m_lambda1(0.999),m_lambda2(0.001) {
 	m_M=100*pow(2,DIM*max_depth);
 	m_epsilon=0.5;
 }
@@ -54,42 +54,28 @@ bool MSP::step(){
 		m_current_path.push_back(m_nodes[next_point_id].first);
 		m_path_cost.push_back(m_cost[next_point_id]);
 
-//		if(m_speed_up){
-//			int mv_fwd=2;
-//			while(result->length()>mv_fwd){
-//				int next_point_id2=result->GetVertex(mv_fwd)->getID();
-//				if(m_tree->getNode(m_nodes[next_point_id2].first)->isLeaf()){
-//					m_misleading[m_nodes[next_point_id].first].insert(m_nodes[next_point_id2].first);
-//					m_current_path.push_back(m_nodes[next_point_id2].first);
-//					m_path_cost.push_back(m_cost[next_point_id2]);
-//					next_point_id=next_point_id2;
-//					++mv_fwd;
-//				}else{
-//					break;
-//				}
-//			}
-//		}
-
-		std::cout<< "rejects before : ";
-		for(auto& c : m_misleading[m_current_coord])
-			std::cout << c << " , ";
-		std::cout << std::endl;
+		if(m_speed_up){
+			int mv_fwd=2;
+			while(result->length()>mv_fwd){
+				int next_point_id2=result->GetVertex(mv_fwd)->getID();
+				if(m_tree->getNode(m_nodes[next_point_id2].first)->isLeaf()){
+					m_misleading[m_nodes[next_point_id].first].insert(m_nodes[next_point_id2].first);
+					m_current_path.push_back(m_nodes[next_point_id2].first);
+					m_path_cost.push_back(m_cost[next_point_id2]);
+					next_point_id=next_point_id2;
+					++mv_fwd;
+				}else{
+					break;
+				}
+			}
+		}
 
 		m_current_coord=m_nodes[next_point_id].first;
 		m_current_scale=m_nodes[next_point_id].second;
 
-
-		std::cout<< "rejects after : ";
-		for(auto& c : m_misleading[m_current_coord])
-			std::cout << c << " , ";
-		std::cout << std::endl;
-
 		if(next_point_id==m_end_index){
 			std::cout << "goal reached" << std::endl;
 			m_path_found=true;
-			std::stringstream it_name;
-			it_name << "iteration0.ot";
-			std::cout << it_name.str() << std::endl;
 			return false;
 		}else{
 			return true;
@@ -127,13 +113,12 @@ bool MSP::inPath(State pt,double scale){
 }
 
 void MSP::add_node_to_reduced_vertices(Node* node,State coord, double scale){
-	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
+//	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
 	if(((coord-m_current_coord).norm()-0.5*sqrt(DIM)*m_current_scale*4*((*(m_tree->getDirections()))[0].max())>m_alpha*scale*4*((*(m_tree->getDirections()))[0].max()) || node->isLeaf())
 			&& !inPath(coord,scale)
 			&& !node->isEpsilonObstacle()
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
 	){
-		std::cout<< "WINNER" <<std::endl;
 		m_nodes.push_back(std::pair<State,double>(coord,scale));
 		m_cost.push_back(cost(node));
 	}else{
@@ -206,7 +191,7 @@ void MSP::reducedGraph(){
 }
 
 bool MSP::is_in(State pt,std::pair<State,double> node){
-	if((pt-node.first).abs()<(*(m_tree->getDirections()))[0]*(2*node.second))
+	if((pt-node.first).abs().isWithin((*(m_tree->getDirections()))[0]*(2*node.second)))
 		return true;
 	return false;
 }

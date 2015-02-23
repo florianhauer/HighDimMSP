@@ -94,10 +94,15 @@ public:
 		return *std::max_element(vec_.begin(),vec_.end());
 	}
 
+	// check if all components are smaller than the components of bound
+	inline bool isWithin(const State bound) const{
+		State test=*this-bound;
+		return std::all_of(test.vec_.begin(),test.vec_.end(),[](float a){return a<0;});
+	}
+
 	// < operator (all element smaller)
 	inline bool operator < (const State b) const{
-		State test=*this-b;
-		return std::all_of(test.vec_.begin(),test.vec_.end(),[](float a){return a<0;});
+		return vec_ < b.vec_;
 	}
 
 	//print operator
