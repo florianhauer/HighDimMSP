@@ -233,7 +233,11 @@ void MSP::iterationDetails(){
 		std::cout << std::endl;
 	}
 	bool latex=true;
-	if(latex){
+	if(latex && DIM==2){
+		if(m_nb_step==0){
+			//remove previous results
+			system("exec rm -r /home/florian/workspace/HighDimMSP/results/iterationFiles/*");
+		}
 		std::stringstream ss;
 		ss << "results/iterationFiles/iteration" << m_nb_step << ".tex";
 		std::fstream file(ss.str(),std::fstream::out);
