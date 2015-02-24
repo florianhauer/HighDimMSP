@@ -3,7 +3,7 @@
 %        1         2         3         4         5         6         7         8
 
 %\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out
-\documentclass[letterpaper, 10 pt, conference,draftcls]{ieeeconf}  % Comment this line out
+\documentclass[letterpaper, 10 pt, conference,draftcls,onecolumn]{ieeeconf}  % Comment this line out
                                                           % if you need a4paper
 %\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4
                                                           % paper
@@ -37,6 +37,9 @@
 
 \usetikzlibrary{calc,arrows,positioning,decorations.markings}
 
+\usepackage[margin=0.5in]{geometry}
+
+
 \title{\LARGE \bf
 2D test display
 }
@@ -45,16 +48,23 @@
 \author{Florian Hauer}
 
 \begin{document}
-
 \maketitle
-
+\newif\ifpaper
+\paperfalse
+\begin{center}
 \newcounter{iteration_number}
-\forloop{iteration_number}{0}{\value{iteration_number} < 50}{
+\forloop{iteration_number}{0}{\value{iteration_number} < 1000}{
 	\IfFileExists{./iterationFiles/iteration\arabic{iteration_number}.tex}{
-		\subsection*{Iteration \arabic{iteration_number}}
 		\input{./iterationFiles/iteration\arabic{iteration_number}.tex}
-	}{ \setcounter{iteration_number}{1000} }
+		\ifpaper
+			\end{center} 
+			\begin{center}
+ 			 \paperfalse
+		\else
+  			\papertrue
+		\fi
+	}{ \setcounter{iteration_number}{10000} }
 }
-
+\end{center}
 
 \end{document}

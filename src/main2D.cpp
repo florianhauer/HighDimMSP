@@ -62,7 +62,7 @@ int main( int argc, const char* argv[] )
 	State sO(obs);
 	VectorND inc={0,-0.1};
 	State sI(inc);
-	for(float i=2;i<19;++i){
+	for(float i=0;i<19;++i){
 		State s=sO+sI*i;
 		t->addObstacle(s);
 	}

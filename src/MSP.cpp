@@ -18,7 +18,7 @@ MSP::MSP(Tree* tree):m_tree(tree) {
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=false;
+	m_speed_up=true;
 	m_path_found=false;
 	m_alpha=0.55*sqrt(DIM);
 	m_lambda1=0.999;
@@ -52,12 +52,12 @@ bool MSP::init(State start,State end){
 
 bool MSP::step(){
 	reducedGraph();
-	iterationDetails();
 	kshortestpaths::YenTopKShortestPathsAlg yenAlg(m_graph, m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
 	//if solution
 	if(yenAlg.has_next()){
 		//go forward // if goal return false;
 		kshortestpaths::BasePath* result =yenAlg.next();
+		iterationDetails(result);
 		int next_point_id=result->GetVertex(1)->getID();
 		//do stuff to prepare next iteration
 		m_misleading[m_current_coord].insert(m_nodes[next_point_id].first);
@@ -92,6 +92,7 @@ bool MSP::step(){
 		}
 
 	}else{
+		iterationDetails();
 		m_misleading[m_current_coord].clear();
 		m_nb_backtrack++;
 		m_current_path.pop_back();
@@ -215,7 +216,7 @@ bool MSP::neighboor(std::pair<State,double> &na,std::pair<State,double> &nb){
 	return false;
 }
 
-void MSP::iterationDetails(){
+void MSP::iterationDetails(kshortestpaths::BasePath* result){
 	std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
 			<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
 	std::cout<< "rejects : ";
@@ -241,9 +242,10 @@ void MSP::iterationDetails(){
 		std::stringstream ss;
 		ss << "results/iterationFiles/iteration" << m_nb_step << ".tex";
 		std::fstream file(ss.str(),std::fstream::out);
-		file << "\\begin{tikzpicture}[scale=0.2]" << std::endl
+		file << "\\begin{tikzpicture}[scale=0.22]" << std::endl
 				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
-				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=2pt];" <<std::endl
+				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
+				<< "\\node[rectangle,draw] at (0,17) {Iteration " << m_nb_step << "};" <<std::endl
 				<< "\\draw[black,thick,fill=red] (-16,-16) rectangle (16,16);" <<std::endl;
 		for(int i=0;i<m_nodes.size();++i){
 			file << "\\draw[treenodes] "
@@ -267,11 +269,22 @@ void MSP::iterationDetails(){
 				}
 			}
 		}
-		file << "\\path[draw,thick] " << m_current_path.front();
-		for(std::deque<State>::iterator it=m_current_path.begin()+1,end=m_current_path.end();it!=end;++it){
-			file << " -- " << *it ;
+		if(m_current_path.size()>1){
+			file << "\\path[draw,thick] " << m_current_path.front();
+			if(m_current_path.size()>2){
+				for(std::deque<State>::iterator it=m_current_path.begin()+1,end=m_current_path.end()-1;it!=end;++it){
+					file << " -- " << *it ;
+				}
+			}
+			file << "-- (" << m_start_index << ");" << std::endl;
 		}
-		file << ";" << std::endl;
+		if(result!=NULL){
+			file << "\\path[draw,thick,orange] (" << m_start_index <<")";
+			for(int i=1;i<result->length()-1;++i){
+				file << " -- (" << result->GetVertex(i)->getID() << ")";
+			}
+			file << "-- (" << m_end_index << ");" << std::endl;
+		}
 		file << "\\end{tikzpicture}" << std::endl;
 		file.close();
 	}
