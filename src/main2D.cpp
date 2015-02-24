@@ -5,14 +5,14 @@
 #include "MSP.h"
 #include <iostream>     // std::cout
 
-bool isObstacle(State s){
+template <unsigned int DIM> bool isObstacle(State<DIM> s){
 	if(s.norm()<0.2)
 		return true;
 	else
 		return false;
 }
 
-bool addObstacles(State s, int depth, float scale, Tree* t){
+template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float scale, Tree<DIM>* t){
 	if(depth==t->getMaxDepth()){
 		//finest resolution: update obstacle presence
 		//if obstacles
@@ -28,12 +28,12 @@ bool addObstacles(State s, int depth, float scale, Tree* t){
 	}else{
 		bool update=false;
 		//update children
-		 for(const State& dir: *(t->getDirections())){
+		 for(const State<DIM>& dir: *(t->getDirections())){
 			 update=addObstacles(s+dir*(0.5f*scale),depth+1,0.5f*scale,t) || update;
 		 }
 		//if any children created, get node
 		 if(update){
-			 Node* cur=t->getNode(s,depth);
+			 Node<DIM>* cur=t->getNode(s,depth);
 			 //prune and update val (single stage, no recurrence)
 			 cur->update(false);
 		 }
@@ -45,25 +45,25 @@ bool addObstacles(State s, int depth, float scale, Tree* t){
 int main( int argc, const char* argv[] )
 {
 	//Create Tree
-	Tree* t=new Tree();
+	Tree<2>* t=new Tree<2>();
 	//Set Search Space Bounds
-	VectorND minVec={-1,-1};
-	State minState=State(minVec);
-	VectorND maxVec={1,1};
-	State maxState=State(maxVec);
+	State<2>::VectorND minVec={-1,-1};
+	State<2> minState(minVec);
+	State<2>::VectorND maxVec={1,1};
+	State<2> maxState(maxVec);
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=MAX_DEPTH;
+	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	//addObstacles(t->getRootState(),0,1.0f,t);
-	VectorND obs={0.0625,0.0625};
-	State sO(obs);
-	VectorND inc={0, 0.125};
-	State sI(inc);
+	State<2>::VectorND obs={0.0625,0.0625};
+	State<2> sO(obs);
+	State<2>::VectorND inc={0, 0.125};
+	State<2> sI(inc);
 	for(float i=-8;i<7;++i){
 		if(i!=0){
-			State s=sO+sI*i;
+			State<2> s=sO+sI*i;
 			t->addObstacle(s);
 		}
 	}
@@ -75,21 +75,21 @@ int main( int argc, const char* argv[] )
 //	std::cout.width(prev);
 
 	//Create algo
-	MSP algo(t);
+	MSP<2> algo(t);
 	//Set algo parameters
-	VectorND startVec={-0.9,-0.9};
-	State start=State(startVec);
-	VectorND goalVec={0.9,0.9};
-	State goal=State(goalVec);
+	State<2>::VectorND startVec={-0.9,-0.9};
+	State<2> start(startVec);
+	State<2>::VectorND goalVec={0.9,0.9};
+	State<2> goal(goalVec);
 	algo.init(start,goal);
 	//Run algo
 	if(algo.run()){
 		std::cout << "solution found" <<std::endl;
-		std::deque<State> sol=algo.getPath();
+		std::deque<State<2>> sol=algo.getPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
 		std::cout << "Path cost: " << algo.getPathCost() << std::endl;
 		std::cout << "Path :" << std::endl;
-		for(std::deque<State>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
+		for(std::deque<State<2>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
 			std::cout << (*it) << " -- ";
 		}
 		std::cout << std::endl;
@@ -100,5 +100,5 @@ int main( int argc, const char* argv[] )
 
 	delete t;
 
-	std::cout << "no crash" << std::endl;
+	std::cout << "no crash " << std::endl;
 }

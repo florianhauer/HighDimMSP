@@ -8,9 +8,18 @@
 #ifndef PARAMS_H_
 #define PARAMS_H_
 
-#define DIM 2
-#define TWOPOWDIM 4
-#define MAX_DEPTH 4
+template <int N>
+struct TwoPow
+{
+     enum { value = 2 * TwoPow<N - 1>::value };
+};
 
+template <>
+struct TwoPow<0>
+{
+    enum { value = 1 };
+};
+
+#define MAX_DEPTH 4
 
 #endif /* PARAMS_H_ */

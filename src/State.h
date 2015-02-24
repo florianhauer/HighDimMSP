@@ -15,9 +15,10 @@
 #include <iterator>
 #include <iostream>     // std::cout
 
-typedef std::array<float,DIM> VectorND;
+template <unsigned int DIM> class State{
+public:
+	typedef std::array<float,DIM> VectorND;
 
-class State{
 private:
 	VectorND vec_; //n-dim vector
 
