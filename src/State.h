@@ -100,7 +100,7 @@ public:
 		return std::all_of(test.vec_.begin(),test.vec_.end(),[](float a){return a<0;});
 	}
 
-	// < operator (all element smaller)
+	// < operator (full ordering)
 	inline bool operator < (const State b) const{
 		return vec_ < b.vec_;
 	}

@@ -10,6 +10,7 @@
 
 #include "State.h"
 #include "Node.h"
+#include <array>
 
 class Tree {
 public:
