@@ -10,6 +10,7 @@
 
 Tree::Tree() {
 	root_=new Node(0.0f,0);
+	maxDepth_=0;
 }
 
 Tree::~Tree() {

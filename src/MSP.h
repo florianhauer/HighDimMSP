@@ -37,11 +37,9 @@ protected:
 	int m_nb_backtrack;
 	int m_end_index;
 	bool m_speed_up;
-	bool m_visu;
 	bool m_path_found;
 	std::deque<State> m_current_path;
 	kshortestpaths::Graph m_graph;
-	std::map<State,double> m_visited;
 	std::map<State,std::set<State>> m_misleading;
 	std::set<State> m_current_forbidden;
 	double m_alpha;//used in reduced graph as parameter for decomposition
