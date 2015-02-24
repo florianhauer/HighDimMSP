@@ -5,6 +5,7 @@
 #include <cmath>
 #include <numeric>
 #include <sstream>
+#include <fstream>
 #include <stdexcept>
 #include <algorithm>
 
@@ -17,7 +18,7 @@ MSP::MSP(Tree* tree):m_tree(tree) {
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=true;
+	m_speed_up=false;
 	m_path_found=false;
 	m_alpha=0.55*sqrt(DIM);
 	m_lambda1=0.999;
@@ -50,9 +51,8 @@ bool MSP::init(State start,State end){
 }
 
 bool MSP::step(){
-	std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
-			<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
 	reducedGraph();
+	iterationDetails();
 	kshortestpaths::YenTopKShortestPathsAlg yenAlg(m_graph, m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
 	//if solution
 	if(yenAlg.has_next()){
@@ -151,10 +151,6 @@ void MSP::reducedGraph(){
 	}catch (const std::out_of_range& oor) {
 		m_current_forbidden=std::set<State>();
 	}
-	std::cout<< "rejects : ";
-	for(auto& c : m_current_forbidden)
-		std::cout << c << " , ";
-	std::cout << std::endl;
 	add_node_to_reduced_vertices(m_tree->getRoot(),m_tree->getRootState(),0.5);
 
 	int l=m_nodes.size();
@@ -178,17 +174,13 @@ void MSP::reducedGraph(){
 			m_end_index=i;
 		}
 	}
-	std::cout << "Gi:" <<std::endl;
 	for(int i=0;i<l;++i){
-		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
 		for(int j=i+1;j<l;++j){
 			if(neighboor(m_nodes[i],m_nodes[j])){
-				std::cout << j << " , ";
 				m_graph.add_edge(i,j,m_cost[j]);
 				m_graph.add_edge(j,i,m_cost[i]);
 			}
 		}
-		std::cout << std::endl;
 	}
 	if(m_start_index==-1){
 		std::cout << "0 start node, fail" << std::endl;
@@ -221,5 +213,63 @@ bool MSP::neighboor(std::pair<State,double> &na,std::pair<State,double> &nb){
 	if(fabs(diff[DIM-1])==0 && fabs(diff[DIM-1]-diff[DIM-2])!=0)
 		return true;
 	return false;
+}
+
+void MSP::iterationDetails(){
+	std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
+			<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
+	std::cout<< "rejects : ";
+	for(auto& c : m_current_forbidden)
+		std::cout << c << " , ";
+	std::cout << std::endl;
+	std::cout << "Gi:" <<std::endl;
+	for(int i=0;i<m_nodes.size();++i){
+		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
+		for(int j=i+1;j<m_nodes.size();++j){
+			if(neighboor(m_nodes[i],m_nodes[j])){
+				std::cout << j << " , ";
+			}
+		}
+		std::cout << std::endl;
+	}
+	bool latex=true;
+	if(latex){
+		std::stringstream ss;
+		ss << "results/iterationFiles/iteration" << m_nb_step << ".tex";
+		std::fstream file(ss.str(),std::fstream::out);
+		file << "\\begin{tikzpicture}[scale=0.2]" << std::endl
+				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
+				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=2pt];" <<std::endl
+				<< "\\draw[black,thick,fill=red] (-16,-16) rectangle (16,16);" <<std::endl;
+		for(int i=0;i<m_nodes.size();++i){
+			file << "\\draw[treenodes] "
+					<< m_nodes[i].first-(*(m_tree->getDirections()))[0]*m_nodes[i].second*2
+					<< " rectangle "
+					<< m_nodes[i].first+(*(m_tree->getDirections()))[0]*m_nodes[i].second*2
+					<< ";" << std::endl;
+		}
+		for(int i=0;i<m_nodes.size();++i){
+			file << "\\node";
+			if(i==m_start_index)
+				file << "[green,thick]";
+			if(i==m_end_index)
+				file << "[red,thick]";
+			file << " at " << m_nodes[i].first << " (" << i << ") {" << i << "};" << std::endl;
+		}
+		for(int i=0;i<m_nodes.size();++i){
+			for(int j=i+1;j<m_nodes.size();++j){
+				if(neighboor(m_nodes[i],m_nodes[j])){
+					file << "\\path[draw] (" << i << ") -- (" << j << ");" << std::endl;
+				}
+			}
+		}
+		file << "\\path[draw,thick] " << m_current_path.front();
+		for(std::deque<State>::iterator it=m_current_path.begin()+1,end=m_current_path.end();it!=end;++it){
+			file << " -- " << *it ;
+		}
+		file << ";" << std::endl;
+		file << "\\end{tikzpicture}" << std::endl;
+		file.close();
+	}
 }
 

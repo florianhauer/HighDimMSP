@@ -20,6 +20,7 @@ public:
 	void setSpeedUp(bool a){m_speed_up=a;}
 
 protected:
+	void iterationDetails();
 	bool inPath(State pt,double size);
 	void reducedGraph();
 	bool neighboor(std::pair<State,double> &na,std::pair<State,double> &nb);

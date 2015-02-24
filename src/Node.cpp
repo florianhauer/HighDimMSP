@@ -31,6 +31,9 @@ bool  Node::childExists(int i){
 }
 
 double Node::update(bool rec){
+	if(isLeaf()){
+		return val_;
+	}
 	//pruning variables
 	bool prunable=pruningOn;
 	double prevVal=-1;

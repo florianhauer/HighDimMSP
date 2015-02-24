@@ -1,0 +1,60 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+%\documentclass[letterpaper, 10 pt, conference]{ieeeconf}  % Comment this line out
+\documentclass[letterpaper, 10 pt, conference,draftcls]{ieeeconf}  % Comment this line out
+                                                          % if you need a4paper
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4
+                                                          % paper
+
+%\IEEEoverridecommandlockouts                              % This command is only
+                                                          % needed if you want to
+                                                          % use the \thanks command
+%\overrideIEEEmargins
+% See the \addtolength command later in the file to balance the column lengths
+% on the last page of the document
+
+
+\pdfminorversion=4
+
+% The following packages can be found on http:\\www.ctan.org
+\usepackage{graphicx} % for pdf, bitmapped graphics files
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{calc}
+\usepackage{forloop}
+\usepackage{pgfplots}
+\usetikzlibrary{external} 
+\tikzexternalize[prefix=tikz/] 
+\tikzset{external/mode=graphics if exists}
+
+\usepackage{lmodern}
+\DeclareMathSizes{7}{7}{5}{4} % \scriptsize is 7 pt
+\DeclareMathSizes{5}{5}{3}{2} % \tiny is 5 pt
+\usepackage{tikz}
+
+\usetikzlibrary{calc,arrows,positioning,decorations.markings}
+
+\title{\LARGE \bf
+2D test display
+}
+
+
+\author{Florian Hauer}
+
+\begin{document}
+
+\maketitle
+
+\newcounter{iteration_number}
+\forloop{iteration_number}{0}{\value{iteration_number} < 50}{
+	\IfFileExists{./iterationFiles/iteration\arabic{iteration_number}.tex}{
+		\subsection*{Iteration \arabic{iteration_number}}
+		\input{./iterationFiles/iteration\arabic{iteration_number}.tex}
+	}{ \setcounter{iteration_number}{1000} }
+}
+
+
+\end{document}

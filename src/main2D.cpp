@@ -57,6 +57,18 @@ int main( int argc, const char* argv[] )
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	addObstacles(t->getRootState(),0,1.0f,t);
+	std::cout << "adding obstacles " << std::endl;
+	VectorND obs={0.1,0.9};
+	State sO(obs);
+	VectorND inc={0,-0.1};
+	State sI(inc);
+	for(float i=0;i<19;++i){
+		State s=sO+sI*i;
+		t->addObstacle(s);
+	}
+	std::cout << "before tree update " << std::endl;
+	t->updateRec();
+	std::cout << "after tree update " << std::endl;
 //	//print tree to check
 	std::streamsize prev=std::cout.width(0);
 	std::cout.flags(std::ios_base::right);

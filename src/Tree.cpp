@@ -30,6 +30,10 @@ void Tree::addObstacle(State& obs){
 				break;
 			}
 		}
+		if(i==TWOPOWDIM){
+			std::cout << "can only add obstacles at max depth for now" << std::endl;
+			return;
+		}
 		s=s+directions_[i]*scale;
 		node=node->getChild(i);
 		depth=depth+1;

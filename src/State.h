@@ -108,9 +108,9 @@ public:
 	//print operator
 	friend std::ostream& operator<< (std::ostream& stream, const State& st) {
 		stream << "(";
-		for(const auto& v : st.vec_)
-			stream << ((int)16*v) << ", ";
-		stream << ")";
+		for(int i=0;i<DIM-1;++i)
+			stream << ((int)16*st.vec_[i]) << ", ";
+		stream << ((int)16*st.vec_[DIM-1]) << ")";
 		return stream;
 	}
 };
