@@ -9,14 +9,19 @@
 #include <algorithm>
 
 
-MSP::MSP(Tree* tree, int max_depth):m_tree(tree),m_speed_up(false),m_path_found(false),m_alpha(0.55*sqrt(DIM)),m_lambda1(0.999),m_lambda2(0.001) {
-	m_M=100*pow(2,DIM*max_depth);
+MSP::MSP(Tree* tree):m_tree(tree) {
+	m_M=100*pow(2,DIM*tree->getMaxDepth());
 	m_epsilon=0.5;
 	m_current_scale=0;
 	m_end_index=0;
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
+	m_speed_up=true;
+	m_path_found=false;
+	m_alpha=0.55*sqrt(DIM);
+	m_lambda1=0.999;
+	m_lambda2=0.001;
 }
 
 bool MSP::init(State start,State end){
@@ -175,7 +180,7 @@ void MSP::reducedGraph(){
 	}
 	std::cout << "Gi:" <<std::endl;
 	for(int i=0;i<l;++i){
-		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << m_nodes[i].second << " and cost " << m_cost[i] << ", neighbor with ";
+		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
 		for(int j=i+1;j<l;++j){
 			if(neighboor(m_nodes[i],m_nodes[j])){
 				std::cout << j << " , ";

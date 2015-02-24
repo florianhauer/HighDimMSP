@@ -18,8 +18,7 @@ public:
 	Node* 					addChild(int i);									//create a new children at position i with value val
 	bool  					childExists(int i);									//checks if child i exists
 	Node* 					getChild(int i);									//returns child i - creates it if it does not exists
-	double					updateValRec();										//recursively update the value of all descendant (FULL UPDATE)
-	void 					singleStageUpdate();								//update the local value according to the children (LOCAL UPDATE)
+	double					update(bool rec);									//update the current node according to its children, if rec=true, descendant are first updated (full update of the subtree)
 	void 					setValue(float v){val_=v;}							//set the value val_ of the node to v
 	double 					getValue(){return val_;}							//return the value val_ of the node
 	bool 					isLeaf(){return isLeaf_;}							//return true if the node is a leaf

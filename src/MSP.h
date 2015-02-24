@@ -10,7 +10,7 @@
 
 class MSP{
 public:
-	MSP(Tree* tree,int max_depth);
+	MSP(Tree* tree);
 	bool init(State start,State end);
 	bool step();
 	bool run();

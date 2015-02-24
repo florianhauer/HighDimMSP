@@ -109,7 +109,7 @@ public:
 	friend std::ostream& operator<< (std::ostream& stream, const State& st) {
 		stream << "(";
 		for(const auto& v : st.vec_)
-			stream << v << ", ";
+			stream << ((int)16*v) << ", ";
 		stream << ")";
 		return stream;
 	}

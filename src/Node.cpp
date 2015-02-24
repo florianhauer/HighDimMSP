@@ -30,7 +30,7 @@ bool  Node::childExists(int i){
 	return childExists_[i];
 }
 
-double Node::updateValRec(){
+double Node::update(bool rec){
 	//pruning variables
 	bool prunable=pruningOn;
 	double prevVal=-1;
@@ -38,7 +38,9 @@ double Node::updateValRec(){
 	double sum=0.0;
 	for(int i=0;i<TWOPOWDIM;++i){
 		if(childExists_[i]){
-			children_[i]->updateValRec();
+			if(rec){
+				children_[i]->update(rec);
+			}
 			sum+=children_[i]->getValue();
 			//check if pruning possible
 			if(prunable){
@@ -64,40 +66,6 @@ double Node::updateValRec(){
 		childExists_.fill(false);
 	}
 	return val_;
-}
-
-void Node::singleStageUpdate(){
-	//pruning variables
-	bool prunable=pruningOn;
-	double prevVal=-1;
-	//update
-	double sum=0.0;
-	for(int i=0;i<TWOPOWDIM;++i){
-		if(childExists_[i]){
-			sum+=children_[i]->getValue();
-			//check if pruning possible
-			if(prunable){
-				if(prevVal==-1){
-					prevVal=children_[i]->getValue();
-				}else{
-					if(prevVal != children_[i]->getValue() || !children_[i]->isLeaf()){
-						prunable=false;
-					}
-				}
-			}
-		}else{
-			prunable=false;
-		}
-	}
-	val_=sum/TWOPOWDIM;
-	if(prunable){
-		//prune
-		for(int i=0;i<TWOPOWDIM;++i)
-			if(childExists_[i])
-				delete children_[i];
-		isLeaf_=true;
-		childExists_.fill(false);
-	}
 }
 
 Node* Node::getChild(int i){

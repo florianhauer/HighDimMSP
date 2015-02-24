@@ -34,8 +34,8 @@ bool addObstacles(State s, int depth, float scale, Tree* t){
 		//if any children created, get node
 		 if(update){
 			 Node* cur=t->getNode(s,depth);
-			 //prune and update val (single stage, no recurrence)
-			 cur->singleStageUpdate();
+			 //prune and update val (single stage, no recurrence (children are up to date))
+			 cur->update(false);
 		 }
 		 //indicate if updates were performed on the tree
 		 return update;
@@ -64,7 +64,7 @@ int main( int argc, const char* argv[] )
 //	std::cout.width(prev);
 
 	//Create algo
-	MSP algo(t,depth);
+	MSP algo(t);
 	//Set algo parameters
 	VectorND startVec={1,-1,-1,-1};
 	State start=State(startVec);

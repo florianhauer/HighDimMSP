@@ -18,7 +18,7 @@ public:
 	~Tree();
 
 	void addObstacle(State& obs);       										//create a node a finest resolution around s with value 1
-	void updateRec(){root_->updateValRec();}									//recursively updates every value in the tree
+	void updateRec(){root_->update(true);}									//recursively updates every value in the tree
 	double getVal(State s);														//return the value of the node corresponding to state s
 	inline Node* getRoot(){return root_;}										//returns the root of the tree
 	void setStateBounds(State minState,State maxState);							//set the search space range

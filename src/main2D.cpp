@@ -6,7 +6,7 @@
 #include <iostream>     // std::cout
 
 bool isObstacle(State s){
-	if(s.norm()<0.1)
+	if(s.norm()<0.2)
 		return true;
 	else
 		return false;
@@ -35,7 +35,7 @@ bool addObstacles(State s, int depth, float scale, Tree* t){
 		 if(update){
 			 Node* cur=t->getNode(s,depth);
 			 //prune and update val (single stage, no recurrence)
-			 cur->singleStageUpdate();
+			 cur->update(false);
 		 }
 		 //indicate if updates were performed on the tree
 		 return update;
@@ -64,7 +64,7 @@ int main( int argc, const char* argv[] )
 	std::cout.width(prev);
 
 	//Create algo
-	MSP algo(t,depth);
+	MSP algo(t);
 	//Set algo parameters
 	VectorND startVec={-0.9,-0.9};
 	State start=State(startVec);
