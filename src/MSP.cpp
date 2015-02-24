@@ -217,21 +217,24 @@ bool MSP::neighboor(std::pair<State,double> &na,std::pair<State,double> &nb){
 }
 
 void MSP::iterationDetails(kshortestpaths::BasePath* result){
-	std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
-			<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
-	std::cout<< "rejects : ";
-	for(auto& c : m_current_forbidden)
-		std::cout << c << " , ";
-	std::cout << std::endl;
-	std::cout << "Gi:" <<std::endl;
-	for(int i=0;i<m_nodes.size();++i){
-		std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
-		for(int j=i+1;j<m_nodes.size();++j){
-			if(neighboor(m_nodes[i],m_nodes[j])){
-				std::cout << j << " , ";
-			}
-		}
+	bool console=false;
+	if(console){
+		std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
+				<< "nkipi: " << m_current_coord << " with scale factor " << m_current_scale << std::endl;
+		std::cout<< "rejects : ";
+		for(auto& c : m_current_forbidden)
+			std::cout << c << " , ";
 		std::cout << std::endl;
+		std::cout << "Gi:" <<std::endl;
+		for(int i=0;i<m_nodes.size();++i){
+			std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
+			for(int j=i+1;j<m_nodes.size();++j){
+				if(neighboor(m_nodes[i],m_nodes[j])){
+					std::cout << j << " , ";
+				}
+			}
+			std::cout << std::endl;
+		}
 	}
 	bool latex=true;
 	if(latex && DIM==2){

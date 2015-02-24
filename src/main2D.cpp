@@ -56,24 +56,23 @@ int main( int argc, const char* argv[] )
 	int depth=MAX_DEPTH;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-	addObstacles(t->getRootState(),0,1.0f,t);
-	std::cout << "adding obstacles " << std::endl;
-	VectorND obs={0.1,0.9};
+	//addObstacles(t->getRootState(),0,1.0f,t);
+	VectorND obs={0.0625,0.0625};
 	State sO(obs);
-	VectorND inc={0,-0.1};
+	VectorND inc={0, 0.125};
 	State sI(inc);
-	for(float i=0;i<19;++i){
-		State s=sO+sI*i;
-		t->addObstacle(s);
+	for(float i=-8;i<7;++i){
+		if(i!=0){
+			State s=sO+sI*i;
+			t->addObstacle(s);
+		}
 	}
-	std::cout << "before tree update " << std::endl;
 	t->updateRec();
-	std::cout << "after tree update " << std::endl;
 //	//print tree to check
-	std::streamsize prev=std::cout.width(0);
-	std::cout.flags(std::ios_base::right);
-	std::cout<<*(t->getRoot())<<std::endl;
-	std::cout.width(prev);
+//	std::streamsize prev=std::cout.width(0);
+//	std::cout.flags(std::ios_base::right);
+//	std::cout<<*(t->getRoot())<<std::endl;
+//	std::cout.width(prev);
 
 	//Create algo
 	MSP algo(t);
