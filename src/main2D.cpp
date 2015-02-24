@@ -6,7 +6,7 @@
 #include <iostream>     // std::cout
 
 bool isObstacle(State s){
-	if(s.norm()<0.2)
+	if(s.norm()<0.1)
 		return true;
 	else
 		return false;
