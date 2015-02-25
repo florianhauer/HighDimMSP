@@ -21,6 +21,7 @@ public:
 	double getPathCost(){return std::accumulate(m_path_cost.begin(),m_path_cost.end(),0.0);}
 	void setAlpha(double a){m_alpha=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
+	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
 	void iterationDetails(kshortestpaths::BasePath* result=NULL);
@@ -87,14 +88,21 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
 	m_lambda2=0.001;
 }
 
+template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
+	if(n->getValue()>1-m_epsilon/m_tree->getVolume(n->getDepth()))
+		return true;
+	return false;
+}
+
+
 template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end){
 	State<DIM> startc;
 	State<DIM> goalc;
 	Node<DIM>* nstart=m_tree->getNode(start,startc);
 	Node<DIM>* ngoal=m_tree->getNode(end,goalc);
-	if(nstart->isLeaf() && ngoal->isLeaf() && !nstart->isEpsilonObstacle() && !ngoal->isEpsilonObstacle()){
+	if(nstart->isLeaf() && ngoal->isLeaf() && !isEpsilonObstacle(nstart) && !isEpsilonObstacle(ngoal)){
 		m_current_coord=startc;
-		m_current_scale=nstart->getScale();
+		m_current_scale=m_tree->getScale(nstart->getDepth());
 		m_start_coord=startc;
 		m_end_coord=goalc;
 		m_current_path.clear();
@@ -163,7 +171,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 			return false;
 		}else{
 			m_current_coord=m_current_path.back();
-			m_current_scale=m_tree->getNode(m_current_coord)->getScale();
+			m_current_scale=m_tree->getScale(m_tree->getNode(m_current_coord)->getDepth());
 			m_path_cost.pop_back();
 			return true;
 		}
@@ -189,7 +197,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 //	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
 	if(((coord-m_current_coord).norm()-0.5*sqrt(DIM)*m_current_scale*4*((*(m_tree->getDirections()))[0].max())>m_alpha*scale*4*((*(m_tree->getDirections()))[0].max()) || node->isLeaf())
 			&& !inPath(coord,scale)
-			&& !node->isEpsilonObstacle()
+			&& !isEpsilonObstacle(node)
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
 	){
 		m_nodes.push_back(std::pair<State<DIM>,double>(coord,scale));
@@ -262,8 +270,8 @@ template <unsigned int DIM> bool MSP<DIM>::is_in(State<DIM> pt,std::pair<State<D
 }
 
 template <unsigned int DIM> double MSP<DIM>::cost(Node<DIM>* n){
-	if (!n->isEpsilonObstacle()){
-		return (m_lambda1*n->getValue()+m_lambda2)*n->getVolume();
+	if (!isEpsilonObstacle(n)){
+		return (m_lambda1*n->getValue()+m_lambda2)*m_tree->getVolume(n->getDepth());
 	}else{
 		return m_M;
 	}

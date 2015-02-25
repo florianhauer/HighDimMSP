@@ -17,25 +17,27 @@ public:
 	Tree();
 	~Tree();
 
-	void addObstacle(State<DIM>& obs);       										//create a node a finest resolution around s with value 1
-	void updateRec(){root_->update(true);}									//recursively updates every value in the tree
-	double getVal(State<DIM> s);														//return the value of the node corresponding to state s
-	inline Node<DIM>* getRoot(){return root_;}										//returns the root of the tree
-	void setStateBounds(State<DIM> minState,State<DIM> maxState);							//set the search space range
-	inline void setMaxDepth(int depth){maxDepth_=depth;}						//set the maximum depth of the tree
-	inline int getMaxDepth(){return maxDepth_;}									//returns the max depth
-	inline State<DIM> getRootState(){return rootState_;}								//returns the spacial position of the center of the search space
-	inline std::array<State<DIM>,TwoPow<DIM>::value>* getDirections(){return &directions_;}	//returns the array of directions to find children
-	Node<DIM>* getNode(State<DIM> obj,int depth,State<DIM>& s);								//find the node corresponding to state obj and depth smaller than depth, s becomes the corrected state
-	Node<DIM>* getNode(State<DIM> s,State<DIM>& sc){return getNode(s,maxDepth_,sc);}			//find the node corresponding to state s at any depth, sc becomes the corrected state
-	Node<DIM>* getNode(State<DIM> obj,int depth){State<DIM> s;return getNode(obj,depth,s);}	//find the node corresponding to state s and depth smaller than depth
-	Node<DIM>* getNode(State<DIM> s){return getNode(s,maxDepth_);}						//find the node corresponding to state s at any depth
+	void 				addObstacle(State<DIM>& obs);       											//create a node a finest resolution around s with value 1
+	void 				updateRec(){root_->update(true);}												//recursively updates every value in the tree
+	double 				getVal(State<DIM> s);															//return the value of the node corresponding to state s
+	inline Node<DIM>* 	getRoot(){return root_;}														//returns the root of the tree
+	void 				setStateBounds(State<DIM> minState,State<DIM> maxState);						//set the search space range
+	inline void 		setMaxDepth(int depth){maxDepth_=depth;}										//set the maximum depth of the tree
+	inline int 			getMaxDepth(){return maxDepth_;}												//returns the max depth
+	inline State<DIM> 	getRootState(){return rootState_;}												//returns the spacial position of the center of the search space
+	inline std::array<State<DIM>,TwoPow<DIM>::value>* getDirections(){return &directions_;}				//returns the array of directions to find children
+	Node<DIM>* 			getNode(State<DIM> obj,int depth,State<DIM>& s);								//find the node corresponding to state obj and depth smaller than depth, s becomes the corrected state
+	Node<DIM>* 			getNode(State<DIM> s,State<DIM>& sc){return getNode(s,maxDepth_,sc);}			//find the node corresponding to state s at any depth, sc becomes the corrected state
+	Node<DIM>* 			getNode(State<DIM> obj,int depth){State<DIM> s;return getNode(obj,depth,s);}	//find the node corresponding to state s and depth smaller than depth
+	Node<DIM>* 			getNode(State<DIM> s){return getNode(s,maxDepth_);}								//find the node corresponding to state s at any depth
+	double 				getVolume(int depth);															//returns the volume of a node at a given depth (volume at maxDepth_ is 1)
+	double 				getScale(int depth);															//returns the scale at a given depth
 
 private:
-	Node<DIM>* root_;																//root of the tree
-	int maxDepth_;																//max depth of the tree
-	State<DIM> rootState_;															//state corresponding to the center of the search space
-	std::array<State<DIM>,TwoPow<DIM>::value> directions_;									//vectors towards children (defines the children order)
+	Node<DIM>* root_;																					//root of the tree
+	int maxDepth_;																						//max depth of the tree
+	State<DIM> rootState_;																				//state corresponding to the center of the search space
+	std::array<State<DIM>,TwoPow<DIM>::value> directions_;												//vectors towards children (defines the children order)
 };
 
 /*
@@ -60,7 +62,7 @@ template <unsigned int DIM> Tree<DIM>::~Tree() {
 
 template <unsigned int DIM> void Tree<DIM>::addObstacle(State<DIM>& obs){
 	Node<DIM>* node=root_;
-	State<DIM> s=State<DIM>(rootState_);
+	State<DIM> s(rootState_);
 	int depth=0;
 	float scale=0.5;
 	while(depth!=maxDepth_){
@@ -87,7 +89,7 @@ template <unsigned int DIM> Node<DIM>* Tree<DIM>::getNode(State<DIM> obj,int dep
 	s=rootState_;
 	int ldepth=0;
 	float scale=0.5;
-	while(ldepth!=depth && !node->isLeaf() && (s-obj).normSq()!=0){ //TODO maybe add epsilon tolerance
+	while(ldepth!=depth && !node->isLeaf() && (s-obj).normSq()!=0){ //TODO maybe add epsilon tolerance, not necessary as long as S is composed of powers of 2
 		int i=0;
 		for(;i<TwoPow<DIM>::value;++i){
 			if((s+directions_[i]*scale-obj).abs().isWithin(directions_[0]*scale)){
@@ -119,5 +121,12 @@ template <unsigned int DIM> void Tree<DIM>::setStateBounds(State<DIM> minState,S
 	}
 }
 
+template <unsigned int DIM> double Tree<DIM>::getVolume(int depth){
+	return pow(2,DIM*(maxDepth_-depth));
+}
+
+template <unsigned int DIM> double Tree<DIM>::getScale(int depth){
+	return pow(0.5,depth+1);
+}
 
 #endif /* TREE_H_ */
