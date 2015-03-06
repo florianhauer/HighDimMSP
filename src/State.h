@@ -24,6 +24,7 @@ private:
 
 public:
 	State():vec_(){}
+	State(float n):vec_(){std::fill(vec_.begin(),vec_.end(),n);}
 	State(VectorND vec):vec_(vec){}
 	State(const State& s):vec_(s.vec_){}
 
