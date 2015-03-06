@@ -47,20 +47,16 @@ int main( int argc, const char* argv[] )
 	//Create Tree
 	Tree<2>* t=new Tree<2>();
 	//Set Search Space Bounds
-	State<2>::VectorND minVec={-1,-1};
-	State<2> minState(minVec);
-	State<2>::VectorND maxVec={1,1};
-	State<2> maxState(maxVec);
+	State<2> minState={-1,-1};
+	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
 	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	//addObstacles(t->getRootState(),0,1.0f,t);
-	State<2>::VectorND obs={0.0625,0.0625};
-	State<2> sO(obs);
-	State<2>::VectorND inc={0, 0.125};
-	State<2> sI(inc);
+	State<2> sO={0.0625,0.0625};
+	State<2> sI={0, 0.125};
 	for(float i=-8;i<7;++i){
 		if(i!=0){
 			State<2> s=sO+sI*i;
@@ -77,10 +73,8 @@ int main( int argc, const char* argv[] )
 	//Create algo
 	MSP<2> algo(t);
 	//Set algo parameters
-	State<2>::VectorND startVec={-0.9,-0.9};
-	State<2> start(startVec);
-	State<2>::VectorND goalVec={0.9,0.9};
-	State<2> goal(goalVec);
+	State<2> start={-0.9,-0.9};
+	State<2> goal={0.9,0.9};
 	algo.init(start,goal);
 	//Run algo
 	if(algo.run()){
