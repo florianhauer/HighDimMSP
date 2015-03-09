@@ -19,14 +19,14 @@
 template<unsigned int DIM>
 class State : public std::array<float, DIM> {
 public:
-	State():std::array<float, DIM>(){}
-	State(std::initializer_list<float> a):std::array<float, DIM>(){
+	State(){}
+	State(std::initializer_list<float> a){
 		auto it=this->begin();
 		for(auto f:a)
 			(*it++)=f;
 	}
-	State(float n):std::array<float, DIM>(){std::fill(this->begin(),this->end(),n);}
-	State(const State& s):std::array<float, DIM>(){std::copy(s.begin(),s.end(),this->begin());}
+	State(float n){std::fill(this->begin(),this->end(),n);}
+	State(const State& s){std::copy(s.begin(),s.end(),this->begin());}
 	State operator + ( const State& b) const{
 		State c;
 		std::transform(this->begin(), this->end(), b.begin(), c.begin(),
