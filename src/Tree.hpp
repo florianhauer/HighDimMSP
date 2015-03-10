@@ -34,17 +34,16 @@ template <unsigned int DIM> void Tree<DIM>::addObstacle(Key<DIM>& obs){
 	int height=maxDepth_-1;
 	int size=k[0]>>1;
 	Key<DIM> k2;
-	int size2;
 	while(height>=0){
 		int i=0;
-		size2=size>>1;
 		for(;i<TwoPow<DIM>::value;++i){
 			k2=k+(directions_[i]<<height)-obs;
-			if(std::all_of(k2.begin(),k2.end(),[size2](int ki){return ki>-size2 && ki<size2;})){
+			if(std::all_of(k2.begin(),k2.end(),[size](int ki){return ki>-size && ki<size;})){
 				break;
 			}
 		}
 		if(i==TwoPow<DIM>::value){
+			std::cout << obs << " , " << k2 << " , " << size << " , " << height << std::endl;
 			std::cout << "can only add obstacles at max depth for now" << std::endl;
 			return;
 		}
