@@ -20,6 +20,4 @@ struct TwoPow<0>
     enum { value = 1 };
 };
 
-#define MAX_DEPTH 4
-
 #endif /* PARAMS_H_ */

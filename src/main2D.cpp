@@ -12,13 +12,13 @@ template <unsigned int DIM> bool isObstacle(State<DIM> s){
 		return false;
 }
 
-template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float scale, Tree<DIM>* t){
+template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, Tree<DIM>* t){
 	if(depth==t->getMaxDepth()){
 		//finest resolution: update obstacle presence
 		//if obstacles
-		if(isObstacle(s)){
+		if(isObstacle(t->getState(k))){
 			//add obstacle to the tree
-			t->addObstacle(s);
+			t->addObstacle(k);
 			//indicate that the tree was updated
 			return true;
 		}else{
@@ -28,13 +28,14 @@ template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float sca
 	}else{
 		bool update=false;
 		//update children
-		 for(const State<DIM>& dir: *(t->getDirections())){
-			 update=addObstacles(s+dir*(0.5f*scale),depth+1,0.5f*scale,t) || update;
+		int size2=size>>1;
+		 for(const Key<DIM>& dir: *(t->getDirections())){
+			 update=addObstacles(k+dir*size2,depth+1,size2,t) || update;
 		 }
 		//if any children created, get node
 		 if(update){
-			 Node<DIM>* cur=t->getNode(s,depth);
-			 //prune and update val (single stage, no recurrence)
+			 Node<DIM>* cur=t->getNode(k);
+			 //prune and update val (single stage, no recurrence (children are up to date))
 			 cur->update(false);
 		 }
 		 //indicate if updates were performed on the tree
@@ -60,7 +61,10 @@ int main( int argc, const char* argv[] )
 	for(float i=-8;i<7;++i){
 		if(i!=0){
 			State<2> s=sO+sI*i;
-			t->addObstacle(s);
+			Key<2> k;
+			if(t->getKey(s,k)){
+				t->addObstacle(k);
+			}
 		}
 	}
 	t->updateRec();
