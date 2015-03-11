@@ -26,6 +26,8 @@ public:
 
 protected:
 	void iterationDetails(kshortestpaths::BasePath* result=NULL);
+	void drawTree(std::ostream& stream);
+	void drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size);
 	bool inPath(Key<DIM> pt,int size);
 	void reducedGraph();
 	bool neighboor(std::pair<Key<DIM>,int> &na,std::pair<Key<DIM>,int> &nb);

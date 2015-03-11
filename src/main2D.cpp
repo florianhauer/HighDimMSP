@@ -52,7 +52,7 @@ int main( int argc, const char* argv[] )
 	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=2;
+	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	//addObstacles(t->getRootState(),0,1.0f,t);
@@ -69,10 +69,10 @@ int main( int argc, const char* argv[] )
 	}
 	t->updateRec();
 //	//print tree to check
-//	std::streamsize prev=std::cout.width(0);
-//	std::cout.flags(std::ios_base::right);
-//	std::cout<<*(t->getRoot())<<std::endl;
-//	std::cout.width(prev);
+	std::streamsize prev=std::cout.width(0);
+	std::cout.flags(std::ios_base::right);
+	std::cout<<*(t->getRoot())<<std::endl;
+	std::cout.width(prev);
 
 	//Create algo
 	MSP<2> algo(t);

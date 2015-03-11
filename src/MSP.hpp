@@ -17,7 +17,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=true;
+	m_speed_up=false;
 	m_path_found=false;
 	m_alpha=0.55*sqrt(DIM);
 	m_lambda1=0.999;
@@ -140,8 +140,8 @@ template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
 }
 
 template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM>* node,Key<DIM> coord, int size){
-//	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
-	if( ( ((coord-m_current_coord).normSq()>(m_alpha*(size>>1)+sqrt(DIM)*m_current_size)*(m_alpha*(size>>1)+sqrt(DIM)*m_current_size)) || node->isLeaf())
+	//	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
+	if( ( ((coord-m_current_coord).norm()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || node->isLeaf())
 			&& !inPath(coord,size)
 			&& !isEpsilonObstacle(node)
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
@@ -149,9 +149,10 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 		m_nodes.push_back(std::pair<Key<DIM>,int>(coord,size));
 		m_cost.push_back(cost(node));
 	}else{
+		int s=size>>1;
 		if(!node->isLeaf()){
 			for(int i=0;i<TwoPow<DIM>::value;++i){
-				add_node_to_reduced_vertices(node->getChild(i),coord+(*(m_tree->getDirections()))[i]*size,size*0.5);
+				add_node_to_reduced_vertices(node->getChild(i),coord+(*(m_tree->getDirections()))[i]*s,size*0.5);
 			}
 		}
 	}
@@ -234,7 +235,7 @@ template <unsigned int DIM> bool MSP<DIM>::neighboor(std::pair<Key<DIM>,int> &na
 }
 
 template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::BasePath* result){
-	bool console=false;
+	bool console=true;
 	if(console){
 		std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
 				<< "nkipi: " << m_current_coord << " with scale factor " << m_current_size << std::endl;
@@ -244,7 +245,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		std::cout << std::endl;
 		std::cout << "Gi:" <<std::endl;
 		for(int i=0;i<m_nodes.size();++i){
-			std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with scale " << ((int)16*m_nodes[i].second) << " and cost " << m_cost[i] << ", neighbor with ";
+			std::cout << "Vertex " << i << " at " << m_nodes[i].first << " with size " << m_nodes[i].second << " and cost " << m_cost[i] << ", neighbor with ";
 			for(int j=i+1;j<m_nodes.size();++j){
 				if(neighboor(m_nodes[i],m_nodes[j])){
 					std::cout << j << " , ";
@@ -258,20 +259,29 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		if(m_nb_step==0){
 			//remove previous results
 			system("exec rm -r /home/florian/workspace/HighDimMSP/results/iterationFiles/*");
+			std::fstream file("/home/florian/workspace/HighDimMSP/results/iterationFiles/environment.tex",std::fstream::out);
+			file << "\\begin{tikzpicture}[scale=0.22*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
+					<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
+					<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
+					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Environment};" <<std::endl
+					<< "\\draw[black,thick,fill=white] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
+			drawTree(file);
+			file << "\\end{tikzpicture}" << std::endl;
+			file.close();
 		}
 		std::stringstream ss;
-		ss << "results/iterationFiles/iteration" << m_nb_step << ".tex";
+		ss << "/home/florian/workspace/HighDimMSP/results/iterationFiles/iteration" << m_nb_step << ".tex";
 		std::fstream file(ss.str(),std::fstream::out);
-		file << "\\begin{tikzpicture}[scale=0.22]" << std::endl
+		file << "\\begin{tikzpicture}[scale=0.22*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
 				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
 				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
-				<< "\\node[rectangle,draw] at (0,17) {Iteration " << m_nb_step << "};" <<std::endl
-				<< "\\draw[black,thick,fill=red] (-16,-16) rectangle (16,16);" <<std::endl;
+				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Iteration " << m_nb_step << "};" <<std::endl
+				<< "\\draw[black,thick,fill=red] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 		for(int i=0;i<m_nodes.size();++i){
 			file << "\\draw[treenodes] "
-					<< m_nodes[i].first-(*(m_tree->getDirections()))[0]*m_nodes[i].second*2
+					<< m_nodes[i].first-(*(m_tree->getDirections()))[0]*m_nodes[i].second
 					<< " rectangle "
-					<< m_nodes[i].first+(*(m_tree->getDirections()))[0]*m_nodes[i].second*2
+					<< m_nodes[i].first+(*(m_tree->getDirections()))[0]*m_nodes[i].second
 					<< ";" << std::endl;
 		}
 		for(int i=0;i<m_nodes.size();++i){
@@ -308,4 +318,27 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		file << "\\end{tikzpicture}" << std::endl;
 		file.close();
 	}
+}
+
+template <unsigned int DIM> void MSP<DIM>::drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size){
+	if(n->isLeaf()){
+		if(isEpsilonObstacle(n)){
+			stream << "\\draw[treenodes, fill=red] "
+					<< k-(*(m_tree->getDirections()))[0]*size
+					<< " rectangle "
+					<< k+(*(m_tree->getDirections()))[0]*size
+					<< ";" << std::endl;
+		}
+	}else{
+		int s=size>>1;
+		for(int i=0; i<TwoPow<DIM>::value;++i){
+			if(n->childExists(i)){
+				drawTreeRec(stream,k+(*(m_tree->getDirections()))[i]*s,n->getChild(i),s);
+			}
+		}
+	}
+}
+
+template <unsigned int DIM> void MSP<DIM>::drawTree(std::ostream& stream){
+	drawTreeRec(stream, m_tree->getRootKey(), m_tree->getRoot(),m_tree->getRootKey()[0]);
 }

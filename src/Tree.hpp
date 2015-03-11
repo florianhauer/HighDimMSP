@@ -29,15 +29,18 @@ template <unsigned int DIM> void Tree<DIM>::setMaxDepth(int depth){
 
 
 template <unsigned int DIM> void Tree<DIM>::addObstacle(Key<DIM>& obs){
+	std::cout << "Adding obstacle at " << obs << std::endl;
 	Node<DIM>* node=root_;
 	Key<DIM> k(rootKey_);
 	int height=maxDepth_-1;
 	int size=k[0]>>1;
 	Key<DIM> k2;
 	while(height>=0){
+//		std::cout << "Key " << k << " , height " << height << " , size " << size << std::endl;
 		int i=0;
 		for(;i<TwoPow<DIM>::value;++i){
 			k2=k+(directions_[i]<<height)-obs;
+//			std::cout << "k2 " << k2 << std::endl;
 			if(std::all_of(k2.begin(),k2.end(),[size](int ki){return ki>-size && ki<size;})){
 				break;
 			}
@@ -47,7 +50,7 @@ template <unsigned int DIM> void Tree<DIM>::addObstacle(Key<DIM>& obs){
 			std::cout << "can only add obstacles at max depth for now" << std::endl;
 			return;
 		}
-		k=k2;
+		k=k2+obs;
 		node=node->getChild(i);
 		height--;
 		size=size>>1;
@@ -61,16 +64,15 @@ template <unsigned int DIM> Node<DIM>* Tree<DIM>::getNode(const Key<DIM>& kt){
 	int height=maxDepth_-1;
 	int size=k[0]>>1;
 	Key<DIM> k2;
-	int size2;
 	while(height>=0 && !node->isLeaf() && k!=kt){
 		int i=0;
 		for(;i<TwoPow<DIM>::value;++i){
 			k2=k+(directions_[i]<<height)-kt;
-			if(std::all_of(k2.begin(),k2.end(),[size2](int ki){return ki>-size2 && ki<size2;})){
+			if(std::all_of(k2.begin(),k2.end(),[size](int ki){return ki>-size && ki<size;})){
 				break;
 			}
 		}
-		k=k2;
+		k=k2+kt;
 		node=node->getChild(i);
 		height--;
 		size=size>>1;
@@ -103,7 +105,23 @@ template <unsigned int DIM> bool Tree<DIM>::getKey(const State<DIM>& s,Key<DIM>&
 	if(ts>stateInc_){
 		return false;
 	}
-	std::transform(ts.begin(),ts.end(),stateInc_.begin(),k.begin(),[this](float si,float sInci){return (int)(si/sInci*(1<<(maxDepth_+1)));});
+//	std::transform(ts.begin(),ts.end(),stateInc_.begin(),k.begin(),
+//			[this](float si,float sInci){return (int)(si/sInci*(1<<(maxDepth_+1)));});
+	k=rootKey_;
+	int height=maxDepth_-1;
+	int size=k[0]>>1;
+	while(height>=0 && getState(k)!=s){
+		int i=0;
+		std::array<double,TwoPow<DIM>::value> dist;
+		for(;i<TwoPow<DIM>::value;++i){
+			dist[i]=(getState(k+(directions_[i]<<height))-s).normSq();
+		}
+		i=std::distance(dist.begin(),std::min_element(dist.begin(),dist.end()));
+		k=k+(directions_[i]<<height);
+		height--;
+		size=size>>1;
+	}
+	return true;
 }
 
 template <unsigned int DIM> State<DIM> Tree<DIM>::getState(const Key<DIM>& k){
