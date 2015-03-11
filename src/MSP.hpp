@@ -34,7 +34,7 @@ template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
 template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end){
 	Key<DIM> startKey;
 	Key<DIM> goalKey;
-	if(!(m_tree->getKey(start,startKey) && m_tree->getKey(end,goalKey))){
+	if(!(m_tree->getKey(start,startKey,true) && m_tree->getKey(end,goalKey,true))){
 		std::cout << "Error converting state to key" << std::endl;
 		return false;
 	}
@@ -235,7 +235,7 @@ template <unsigned int DIM> bool MSP<DIM>::neighboor(std::pair<Key<DIM>,int> &na
 }
 
 template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::BasePath* result){
-	bool console=true;
+	bool console=false;
 	if(console){
 		std::cout << std::endl << std::endl << "Iteration " << m_nb_step << std::endl
 				<< "nkipi: " << m_current_coord << " with scale factor " << m_current_size << std::endl;
@@ -278,7 +278,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Iteration " << m_nb_step << "};" <<std::endl
 				<< "\\draw[black,thick,fill=red] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 		for(int i=0;i<m_nodes.size();++i){
-			file << "\\draw[treenodes] "
+			file << "\\draw[treenodes, fill=red!" << m_tree->getNode(m_nodes[i].first)->getValue()*100.0 << "] "
 					<< m_nodes[i].first-(*(m_tree->getDirections()))[0]*m_nodes[i].second
 					<< " rectangle "
 					<< m_nodes[i].first+(*(m_tree->getDirections()))[0]*m_nodes[i].second

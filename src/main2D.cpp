@@ -55,24 +55,24 @@ int main( int argc, const char* argv[] )
 	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-	//addObstacles(t->getRootState(),0,1.0f,t);
+	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 	State<2> sO={0.0625,0.0625};
 	State<2> sI={0, 0.125};
-	for(float i=-8;i<7;++i){
-		if(i!=0){
-			State<2> s=sO+sI*i;
-			Key<2> k;
-			if(t->getKey(s,k)){
-				t->addObstacle(k);
-			}
-		}
-	}
-	t->updateRec();
+//	for(float i=-8;i<8;++i){
+//		if(true || i!=0){
+//			State<2> s=sO+sI*i;
+//			Key<2> k;
+//			if(t->getKey(s,k)){
+//				t->addObstacle(k);
+//			}
+//		}
+//	}
+//	t->updateRec();
 //	//print tree to check
-	std::streamsize prev=std::cout.width(0);
-	std::cout.flags(std::ios_base::right);
-	std::cout<<*(t->getRoot())<<std::endl;
-	std::cout.width(prev);
+//	std::streamsize prev=std::cout.width(0);
+//	std::cout.flags(std::ios_base::right);
+//	std::cout<<*(t->getRoot())<<std::endl;
+//	std::cout.width(prev);
 
 	//Create algo
 	MSP<2> algo(t);
@@ -99,4 +99,6 @@ int main( int argc, const char* argv[] )
 	delete t;
 
 	std::cout << "no crash " << std::endl;
+	std::cout << "Compiling pdf" << std::endl;
+	system("cd /home/florian/workspace/HighDimMSP/results/;pdflatex results.tex >/dev/null;evince results.pdf");
 }

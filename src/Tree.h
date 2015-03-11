@@ -30,7 +30,7 @@ public:
 	int 				getVolume(int depth);															//returns the volume of a node at a given depth (volume at maxDepth_ is 1)
 	int 				getSize(int depth);																//returns the size at a given depth
 	int 				getSize(Key<DIM> k);															//returns the size of a node given tis key k
-	bool				getKey(const State<DIM>& s,Key<DIM>& k);										//return false for failure, or update k and return true
+	bool				getKey(const State<DIM>& s,Key<DIM>& k,bool inTree=false);										//return false for failure, or update k and return true
 	State<DIM>			getState(const Key<DIM>& k);													//return the State corresponding to the key k
 
 private:
