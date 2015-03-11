@@ -100,5 +100,7 @@ int main( int argc, const char* argv[] )
 
 	std::cout << "no crash " << std::endl;
 	std::cout << "Compiling pdf" << std::endl;
-	system("cd /home/florian/workspace/HighDimMSP/results/;pdflatex results.tex >/dev/null;evince results.pdf");
+	std::stringstream ss;
+	ss << "cd " << RESDIR << ";pdflatex beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
+	system(ss.str().c_str());
 }

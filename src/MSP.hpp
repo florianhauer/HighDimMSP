@@ -141,7 +141,7 @@ template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
 
 template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM>* node,Key<DIM> coord, int size){
 	//	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
-	if( ( ((coord-m_current_coord).norm()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || node->isLeaf())
+	if( ( ((coord-m_current_coord).normSq()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)*(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || node->isLeaf())
 			&& !inPath(coord,size)
 			&& !isEpsilonObstacle(node)
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
@@ -259,8 +259,10 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		if(m_nb_step==0){
 			//remove previous results
 			system("exec rm -r /home/florian/workspace/HighDimMSP/results/iterationFiles/*");
-			std::fstream file("/home/florian/workspace/HighDimMSP/results/iterationFiles/environment.tex",std::fstream::out);
-			file << "\\begin{tikzpicture}[scale=0.22*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
+			std::stringstream ss;
+			ss << RESDIR << "/iterationFiles/environment.tex";
+			std::fstream file(ss.str(),std::fstream::out);
+			file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
 					<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
 					<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
 					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Environment};" <<std::endl
@@ -270,9 +272,9 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			file.close();
 		}
 		std::stringstream ss;
-		ss << "/home/florian/workspace/HighDimMSP/results/iterationFiles/iteration" << m_nb_step << ".tex";
+		ss << RESDIR << "/iterationFiles/iteration" << m_nb_step << ".tex";
 		std::fstream file(ss.str(),std::fstream::out);
-		file << "\\begin{tikzpicture}[scale=0.22*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
+		file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
 				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
 				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
 				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Iteration " << m_nb_step << "};" <<std::endl

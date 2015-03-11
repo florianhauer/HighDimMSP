@@ -20,4 +20,12 @@ struct TwoPow<0>
     enum { value = 1 };
 };
 
+#ifndef RESDIR2
+#define RESDIR2 ""
+#endif
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define RESDIR TOSTRING(RESDIR2)
+
 #endif /* PARAMS_H_ */
