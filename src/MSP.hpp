@@ -258,7 +258,9 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
-			system("exec rm -r /home/florian/workspace/HighDimMSP/results/iterationFiles/*");
+			std::stringstream ss2;
+			ss2 << "exec rm -r " << RESDIR << "/iterationFiles/*";
+			system(ss2.str().c_str());
 			std::stringstream ss;
 			ss << RESDIR << "/iterationFiles/environment.tex";
 			std::fstream file(ss.str(),std::fstream::out);
