@@ -259,8 +259,11 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		if(m_nb_step==0){
 			//remove previous results
 			std::stringstream ss2;
-			ss2 << "exec rm -r " << RESDIR << "/iterationFiles/*";
+			ss2 << "rm -r " << RESDIR << "/iterationFiles";
 			system(ss2.str().c_str());
+			std::stringstream ss3;
+			ss3 << "mkdir -p " << RESDIR << "/iterationFiles/";
+			system(ss3.str().c_str());
 			std::stringstream ss;
 			ss << RESDIR << "/iterationFiles/environment.tex";
 			std::fstream file(ss.str(),std::fstream::out);
