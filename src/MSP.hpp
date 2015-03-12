@@ -94,7 +94,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 		m_current_size=m_nodes[next_point_id].second;
 
 		if(next_point_id==m_end_index){
-			std::cout << "goal reached" << std::endl;
+			std::cout << "goal reached in " << m_nb_step << " iterations" << std::endl;
 			m_path_found=true;
 			return false;
 		}else{
@@ -254,7 +254,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			std::cout << std::endl;
 		}
 	}
-	bool latex=true;
+	bool latex=false;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results

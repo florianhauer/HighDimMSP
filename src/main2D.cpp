@@ -55,19 +55,19 @@ int main( int argc, const char* argv[] )
 	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+//	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 	State<2> sO={0.0625,0.0625};
 	State<2> sI={0, 0.125};
-//	for(float i=-8;i<8;++i){
-//		if(true || i!=0){
-//			State<2> s=sO+sI*i;
-//			Key<2> k;
-//			if(t->getKey(s,k)){
-//				t->addObstacle(k);
-//			}
-//		}
-//	}
-//	t->updateRec();
+	for(float i=-8;i<8;++i){
+		if(true || i!=0){
+			State<2> s=sO+sI*i;
+			Key<2> k;
+			if(t->getKey(s,k)){
+				t->addObstacle(k);
+			}
+		}
+	}
+	t->updateRec();
 //	//print tree to check
 //	std::streamsize prev=std::cout.width(0);
 //	std::cout.flags(std::ios_base::right);
@@ -79,7 +79,7 @@ int main( int argc, const char* argv[] )
 	//Set algo parameters
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
-	algo.init(start,goal);
+	algo.init(goal,start);
 	//Run algo
 	if(algo.run()){
 		std::cout << "solution found" <<std::endl;
@@ -99,8 +99,11 @@ int main( int argc, const char* argv[] )
 	delete t;
 
 	std::cout << "no crash " << std::endl;
-	std::cout << "Compiling pdf" << std::endl;
-	std::stringstream ss;
-	ss << "cd " << RESDIR << ";pdflatex beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
-	system(ss.str().c_str());
+	bool disppdf=false;
+	if(disppdf){
+		std::cout << "Compiling pdf" << std::endl;
+		std::stringstream ss;
+		ss << "cd " << RESDIR << ";pdflatex beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
+		system(ss.str().c_str());
+	}
 }
