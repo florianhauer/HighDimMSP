@@ -52,7 +52,7 @@ int main( int argc, const char* argv[] )
 	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=4;
+	int depth=3;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 //	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
