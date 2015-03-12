@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include "MSP.h"
 #include <iostream>     // std::cout
+#include <ctime>
 
 template <unsigned int DIM> bool isObstacle(State<DIM> s){
 	if(s.norm()<0.2)
@@ -57,11 +58,11 @@ int main( int argc, const char* argv[] )
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	//addObstacles(t->getRootState(),0,1.0f,t);
-	State<2>::VectorND obs={0.0625,0.0625};
+	State<2>::VectorND obs={0.0006251,0.0006251};
 	State<2> sO(obs);
 	State<2>::VectorND inc={0, 0.125};
 	State<2> sI(inc);
-	for(float i=-8;i<8;++i){
+	for(float i=-8;i<8;i=i+0.25){
 		if(true || i!=0){
 			State<2> s=sO+sI*i;
 			t->addObstacle(s);
@@ -83,7 +84,11 @@ int main( int argc, const char* argv[] )
 	State<2> goal(goalVec);
 	algo.init(goal,start);
 	//Run algo
+	clock_t tc;
+	tc = clock();
 	if(algo.run()){
+		tc = clock() - tc;
+		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
 		std::deque<State<2>> sol=algo.getPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
@@ -94,6 +99,8 @@ int main( int argc, const char* argv[] )
 		}
 		std::cout << std::endl;
 	}else{
+		tc = clock() - tc;
+		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "no solution found" <<std::endl;
 	}
 	//Visualize results

@@ -3,8 +3,10 @@ cmake_minimum_required (VERSION 2.8.5)
 project (HDMSP)
 
 
-SET( CMAKE_BUILD_TYPE Debug)
-SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
+#SET( CMAKE_BUILD_TYPE Debug)
+#SET( CMAKE_CXX_FLAGS  "-std=c++0x" )
+SET( CMAKE_BUILD_TYPE Release)
+SET( CMAKE_CXX_FLAGS  "-Ofast -std=c++0x " )
 
 # Set output directories for libraries and executables
 SET( BASE_DIR ${CMAKE_SOURCE_DIR} )
