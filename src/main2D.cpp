@@ -53,7 +53,7 @@ int main( int argc, const char* argv[] )
 	State<2> maxState(maxVec);
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=4;
+	int depth=3;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 	//addObstacles(t->getRootState(),0,1.0f,t);
@@ -61,8 +61,8 @@ int main( int argc, const char* argv[] )
 	State<2> sO(obs);
 	State<2>::VectorND inc={0, 0.125};
 	State<2> sI(inc);
-	for(float i=-8;i<7;++i){
-		if(i!=0){
+	for(float i=-8;i<8;++i){
+		if(true || i!=0){
 			State<2> s=sO+sI*i;
 			t->addObstacle(s);
 		}
@@ -81,7 +81,7 @@ int main( int argc, const char* argv[] )
 	State<2> start(startVec);
 	State<2>::VectorND goalVec={0.9,0.9};
 	State<2> goal(goalVec);
-	algo.init(start,goal);
+	algo.init(goal,start);
 	//Run algo
 	if(algo.run()){
 		std::cout << "solution found" <<std::endl;
