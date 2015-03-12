@@ -270,7 +270,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
 					<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
 					<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
-					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Environment};" <<std::endl
+					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+2 << ") {Environment};" <<std::endl
 					<< "\\draw[black,thick,fill=white] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 			drawTree(file);
 			file << "\\end{tikzpicture}" << std::endl;
@@ -282,8 +282,8 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 		file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
 				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
 				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
-				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+1 << ") {Iteration " << m_nb_step << "};" <<std::endl
-				<< "\\draw[black,thick,fill=red] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
+				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+2 << ") {Iteration " << m_nb_step << "};" <<std::endl
+				<< "\\draw[black,thick,fill=blue] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 		for(int i=0;i<m_nodes.size();++i){
 			file << "\\draw[treenodes, fill=red!" << m_tree->getNode(m_nodes[i].first)->getValue()*100.0 << "] "
 					<< m_nodes[i].first-(*(m_tree->getDirections()))[0]*m_nodes[i].second

@@ -52,7 +52,7 @@ int main( int argc, const char* argv[] )
 	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=3;
+	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
 //	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
@@ -103,7 +103,7 @@ int main( int argc, const char* argv[] )
 	if(disppdf){
 		std::cout << "Compiling pdf" << std::endl;
 		std::stringstream ss;
-		ss << "cd " << RESDIR << ";pdflatex beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
+		ss << "cd " << RESDIR << ";pdflatex -interaction=nonstopmode beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
 		system(ss.str().c_str());
 	}
 }
