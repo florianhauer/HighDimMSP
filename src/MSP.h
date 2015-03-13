@@ -19,6 +19,7 @@ public:
 	bool step();
 	bool run();
 	std::deque<State<DIM>> getPath();
+	std::deque<State<DIM>> getSmoothedPath();
 	double getPathCost(){return std::accumulate(m_path_cost.begin(),m_path_cost.end(),0.0);}
 	void setAlpha(double a){m_alpha=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}

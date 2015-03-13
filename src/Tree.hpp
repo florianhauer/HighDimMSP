@@ -27,6 +27,12 @@ template <unsigned int DIM> void Tree<DIM>::setMaxDepth(int depth){
 	rootKey_=Key<DIM>(c);
 }
 
+template <unsigned int DIM> void Tree<DIM>::addObstacle(State<DIM>& s){
+	Key<DIM> k;
+	if(getKey(s,k)){
+		addObstacle(k);
+	}
+}
 
 template <unsigned int DIM> void Tree<DIM>::addObstacle(Key<DIM>& obs){
 //	std::cout << "Adding obstacle at " << obs << std::endl;
@@ -132,4 +138,50 @@ template <unsigned int DIM> State<DIM> Tree<DIM>::getState(const Key<DIM>& k){
 	State<DIM> s;
 	std::transform(k.begin(),k.end(),stateInc_.begin(),s.begin(),[this](int ki,float sInci){return (ki*sInci/(1<<(maxDepth_+1)));});
 	return stateMin_+s;
+}
+
+template <unsigned int DIM>  std::forward_list<Key<DIM>> Tree<DIM>::getRayKeys(const Key<DIM>& k1,const Key<DIM>& k2){
+	//TODO: DEBUG
+	//assumptions: k1 and k2 are valid distinct keys of the tree
+	std::forward_list<Key<DIM>> list;
+	Key<DIM> k(k1),lastKey(k1),targetKey;
+	if(k[0]%2==0){
+		k=k+Key<DIM>(1); // finest resolution nodes are always centered on odd positions
+	}
+	State<DIM> v1,v2,dir,distToTarget;
+	std::transform(k1.cbegin(),k1.cend(),v1.begin(),[](const int ki){return float(ki);});
+	std::transform(k2.cbegin(),k2.cend(),v2.begin(),[](const int ki){return float(ki);});
+	dir=v2-v1;
+	Key<DIM> inc;
+	std::transform(dir.begin(),dir.end(),inc.begin(),[](const int diri){if(diri>0){
+																			return 2;
+																			}else{
+																				if(diri<0){
+																					return -2;
+																				}else{return 0;}}});
+	State<DIM> alpha;
+	int i;
+	while(lastKey!=k2){
+		targetKey=k+inc;
+		std::transform(targetKey.begin(),targetKey.end(),v1.begin(),distToTarget.begin(),[](int ki, float v1i){return ki-v1i;});
+		std::transform(distToTarget.begin(),distToTarget.end(),dir.begin(),alpha.begin(),[](float di,float vi){if(vi==0){return 1.0f;}return di/vi;});
+		float alphaMin =*std::min_element(alpha.begin(),alpha.end());
+		auto itb=alpha.begin();
+		while(true){
+			itb=std::find(itb,alpha.end(),alphaMin);
+			if(itb!=alpha.end()){
+				i=std::distance(alpha.begin(),itb);
+				k[i]+=inc[i];
+			}else{
+				break;
+			}
+		}
+		v1=v1+dir*alphaMin;
+		dir=v2-v1;
+		getKey(getState(k),lastKey);
+		if(list.empty() || lastKey!=list.front()){
+			list.push_front(lastKey);
+		}
+	}
+	return list;
 }

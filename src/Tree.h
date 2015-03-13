@@ -12,13 +12,15 @@
 #include "Node.h"
 #include "Key.h"
 #include <array>
+#include <forward_list>
 
 template <unsigned int DIM> class Tree {
 public:
 	Tree();
 	~Tree();
 
-	void 				addObstacle(Key<DIM>& k);       											//create a node a finest resolution around s with value 1
+	void 				addObstacle(Key<DIM>& k);
+	void 				addObstacle(State<DIM>& s);       												//create a node a finest resolution around s with value 1
 	void 				updateRec(){root_->update(true);}												//recursively updates every value in the tree
 	inline Node<DIM>* 	getRoot(){return root_;}														//returns the root of the tree
 	void 				setStateBounds(const State<DIM>& minState,const State<DIM>& maxState);			//set the search space range
@@ -30,8 +32,9 @@ public:
 	int 				getVolume(int depth);															//returns the volume of a node at a given depth (volume at maxDepth_ is 1)
 	int 				getSize(int depth);																//returns the size at a given depth
 	int 				getSize(Key<DIM> k);															//returns the size of a node given tis key k
-	bool				getKey(const State<DIM>& s,Key<DIM>& k,bool inTree=false);										//return false for failure, or update k and return true
-	State<DIM>			getState(const Key<DIM>& k);													//return the State corresponding to the key k
+	bool				getKey(const State<DIM>& s,Key<DIM>& k,bool inTree=false);						//return false for failure, or update k and return true
+	State<DIM>			getState(const Key<DIM>& k);													//return false for failure, or update k and return true
+	std::forward_list<Key<DIM>>	getRayKeys(const Key<DIM>& k1,const Key<DIM>& k2);						//calculate the keys of every node traversed by the ray goin from k1 to k2
 
 private:
 	Node<DIM>* 			root_;																			//root of the tree

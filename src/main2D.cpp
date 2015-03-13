@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include "MSP.h"
 #include <iostream>     // std::cout
+#include <ctime>
 
 template <unsigned int DIM> bool isObstacle(State<DIM> s){
 	if(s.norm()<0.2)
@@ -61,10 +62,7 @@ int main( int argc, const char* argv[] )
 	for(float i=-8;i<8;++i){
 		if(true || i!=0){
 			State<2> s=sO+sI*i;
-			Key<2> k;
-			if(t->getKey(s,k)){
-				t->addObstacle(k);
-			}
+			t->addObstacle(s);
 		}
 	}
 	t->updateRec();
@@ -80,8 +78,11 @@ int main( int argc, const char* argv[] )
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
 	algo.init(goal,start);
-	//Run algo
+	//Run algoclock_t tc;
+	clock_t tc = clock();
 	if(algo.run()){
+		tc = clock() - tc;
+		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
 		std::deque<State<2>> sol=algo.getPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
@@ -92,9 +93,12 @@ int main( int argc, const char* argv[] )
 		}
 		std::cout << std::endl;
 	}else{
+		tc = clock() - tc;
+		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "no solution found" <<std::endl;
 	}
 	//Visualize results
+
 
 	delete t;
 

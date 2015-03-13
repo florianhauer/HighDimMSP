@@ -134,6 +134,24 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getPath(){
 	return path;
 }
 
+template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
+	std::deque<State<DIM>> sPath;
+	sPath.push_back(m_tree->getState(m_current_path[0]));
+	Key<DIM> cur=m_current_path[0];
+	int i=2;
+	while(i<m_current_path.size()){
+		Key<DIM> cur2=m_current_path[i];
+		auto keys=m_tree->getRayKeys(cur,cur2);
+		if(!std::all_of(keys.begin(),keys.end(),[this](Key<DIM> k){return isEpsilonObstacle(m_tree->getNode(k));})){
+			cur=m_current_path[i-1];
+			sPath.push_back(m_tree->getState(cur));
+		}
+		i++;
+	}
+	sPath.push_back(m_tree->getState(m_current_path[m_current_path.size()-1]));
+	return sPath;
+}
+
 template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
 	return std::any_of(m_current_path.begin(),m_current_path.end(),
 			[pt,size,this](Key<DIM> it){return this->is_in(it,std::pair<Key<DIM>,int>(pt,size)) && it!=m_current_path.back();});
