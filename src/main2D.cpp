@@ -60,7 +60,7 @@ int main( int argc, const char* argv[] )
 	State<2> sO={0.0625,0.0625};
 	State<2> sI={0, 0.125};
 	for(float i=-8;i<8;++i){
-		if(true || i!=0){
+		if(i!=0){
 			State<2> s=sO+sI*i;
 			t->addObstacle(s);
 		}
@@ -77,7 +77,7 @@ int main( int argc, const char* argv[] )
 	//Set algo parameters
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
-	algo.init(goal,start);
+	algo.init(start,goal);
 	//Run algoclock_t tc;
 	clock_t tc = clock();
 	if(algo.run()){
@@ -85,6 +85,15 @@ int main( int argc, const char* argv[] )
 		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
 		std::deque<State<2>> sol=algo.getPath();
+		std::cout << "Path length: " << sol.size() << std::endl;
+		std::cout << "Path cost: " << algo.getPathCost() << std::endl;
+		std::cout << "Path :" << std::endl;
+		for(std::deque<State<2>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
+			std::cout << (*it) << " -- ";
+		}
+		std::cout << std::endl;
+		std::cout << "Smoothed solution " << std::endl;
+		sol=algo.getSmoothedPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
 		std::cout << "Path cost: " << algo.getPathCost() << std::endl;
 		std::cout << "Path :" << std::endl;

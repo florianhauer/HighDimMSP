@@ -143,6 +143,7 @@ template <unsigned int DIM> State<DIM> Tree<DIM>::getState(const Key<DIM>& k){
 template <unsigned int DIM>  std::forward_list<Key<DIM>> Tree<DIM>::getRayKeys(const Key<DIM>& k1,const Key<DIM>& k2){
 	//TODO: DEBUG
 	//assumptions: k1 and k2 are valid distinct keys of the tree
+//	std::cout << "getRaysKeys from " << k1 << " to " << k2 << std::endl;
 	std::forward_list<Key<DIM>> list;
 	Key<DIM> k(k1),lastKey(k1),targetKey;
 	if(k[0]%2==0){
@@ -161,27 +162,36 @@ template <unsigned int DIM>  std::forward_list<Key<DIM>> Tree<DIM>::getRayKeys(c
 																				}else{return 0;}}});
 	State<DIM> alpha;
 	int i;
+//	int count=0;
+//	while(count<10){
 	while(lastKey!=k2){
 		targetKey=k+inc;
+//		std::cout << "target " << targetKey << std::endl;
 		std::transform(targetKey.begin(),targetKey.end(),v1.begin(),distToTarget.begin(),[](int ki, float v1i){return ki-v1i;});
+//		std::cout << "distance to target " << distToTarget << std::endl;
 		std::transform(distToTarget.begin(),distToTarget.end(),dir.begin(),alpha.begin(),[](float di,float vi){if(vi==0){return 1.0f;}return di/vi;});
+//		std::cout << "alpha " << alpha << std::endl;
 		float alphaMin =*std::min_element(alpha.begin(),alpha.end());
 		auto itb=alpha.begin();
 		while(true){
 			itb=std::find(itb,alpha.end(),alphaMin);
 			if(itb!=alpha.end()){
 				i=std::distance(alpha.begin(),itb);
+//				std::cout << "min at i=" <<i<<std::endl;
 				k[i]+=inc[i];
 			}else{
 				break;
 			}
+			itb++;
 		}
 		v1=v1+dir*alphaMin;
 		dir=v2-v1;
-		getKey(getState(k),lastKey);
+		getKey(getState(k),lastKey,true);
 		if(list.empty() || lastKey!=list.front()){
 			list.push_front(lastKey);
 		}
+//		std::cout << "lastKey " << lastKey << " from " << k << std::endl;
+//		++count;
 	}
 	return list;
 }

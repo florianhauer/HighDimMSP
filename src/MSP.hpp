@@ -135,6 +135,7 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getPath(){
 }
 
 template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
+//	m_tree->updateRec();
 	std::deque<State<DIM>> sPath;
 	sPath.push_back(m_tree->getState(m_current_path[0]));
 	Key<DIM> cur=m_current_path[0];
@@ -142,7 +143,7 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
 	while(i<m_current_path.size()){
 		Key<DIM> cur2=m_current_path[i];
 		auto keys=m_tree->getRayKeys(cur,cur2);
-		if(!std::all_of(keys.begin(),keys.end(),[this](Key<DIM> k){return isEpsilonObstacle(m_tree->getNode(k));})){
+		if(std::any_of(keys.begin(),keys.end(),[this](Key<DIM> k){return isEpsilonObstacle(m_tree->getNode(k));})){
 			cur=m_current_path[i-1];
 			sPath.push_back(m_tree->getState(cur));
 		}
@@ -272,7 +273,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			std::cout << std::endl;
 		}
 	}
-	bool latex=false;
+	bool latex=true;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
