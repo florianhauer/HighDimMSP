@@ -14,6 +14,6 @@ SET( CMAKE_BUILD_TYPE Release)
 SET( CMAKE_CXX_FLAGS  "-Ofast -std=c++0x -DRESDIR2=\"${RESULT_DIRECTORY}\" " )
 
 
-include_directories("./3rdparty/kshortestpaths/")
+include_directories("./3rdparty/")
 ADD_SUBDIRECTORY( 3rdparty )
 ADD_SUBDIRECTORY( src )

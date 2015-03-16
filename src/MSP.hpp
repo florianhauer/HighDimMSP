@@ -1,5 +1,5 @@
-#include "DijkstraShortestPathAlg.h"
-#include "YenTopKShortestPathsAlg.h"
+#include <kshortestpaths/DijkstraShortestPathAlg.h>
+#include <kshortestpaths/YenTopKShortestPathsAlg.h>
 #include <set>
 #include <cmath>
 #include <numeric>

@@ -7,7 +7,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include "Graph.h"
+#include <kshortestpaths/Graph.h>
 #include "Tree.h"
 #include "State.h"
 #include "Key.h"
