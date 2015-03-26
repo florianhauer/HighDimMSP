@@ -55,6 +55,14 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 		return true;
 	}else{
 		std::cout << "start or goal not leaf on free space" << std::endl;
+		std::cout << "desired start " << start <<std::endl;
+		std::cout << "start " << startKey << " , "
+				<< m_tree->getState(startKey) << " , leaf : " <<nstart->isLeaf()
+				<< " , epsilon obstacle : " << isEpsilonObstacle(nstart) <<std::endl;
+		std::cout << "desired goal " << end <<std::endl;
+		std::cout << "goal " << goalKey << " , "
+				<< m_tree->getState(goalKey) << " , leaf : " <<ngoal->isLeaf()
+				<< " , epsilon obstacle : " << isEpsilonObstacle(ngoal) <<std::endl;
 		exit(1);
 	}
 	return false;
