@@ -17,7 +17,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=false;
+	m_speed_up=true;
 	m_path_found=false;
 	m_alpha=0.55*sqrt(DIM);
 	m_lambda1=0.999;
@@ -54,6 +54,7 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 		m_nb_backtrack=0;
 		return true;
 	}else{
+		/*
 		std::cout << "start or goal not leaf on free space" << std::endl;
 		std::cout << "desired start " << start <<std::endl;
 		std::cout << "start " << startKey << " , "
@@ -62,8 +63,8 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 		std::cout << "desired goal " << end <<std::endl;
 		std::cout << "goal " << goalKey << " , "
 				<< m_tree->getState(goalKey) << " , leaf : " <<ngoal->isLeaf()
-				<< " , epsilon obstacle : " << isEpsilonObstacle(ngoal) <<std::endl;
-		exit(1);
+				<< " , epsilon obstacle : " << isEpsilonObstacle(ngoal) <<std::endl;*/
+		//exit(1);
 	}
 	return false;
 }
@@ -102,7 +103,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 		m_current_size=m_nodes[next_point_id].second;
 
 		if(next_point_id==m_end_index){
-			std::cout << "goal reached in " << m_nb_step << " iterations" << std::endl;
+			//std::cout << "goal reached in " << m_nb_step << " iterations" << std::endl;
 			m_path_found=true;
 			return false;
 		}else{
@@ -128,7 +129,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 
 template <unsigned int DIM> bool MSP<DIM>::run(){
 	while(step()){/*std::cout<<*/++m_nb_step;}
-	std::cout<< "NB backtrack : " << m_nb_backtrack << std::endl;
+	//std::cout<< "NB backtrack : " << m_nb_backtrack << std::endl;
 	if(m_path_found){
 		return true;
 	}else{
@@ -281,7 +282,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			std::cout << std::endl;
 		}
 	}
-	bool latex=true;
+	bool latex=false;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
