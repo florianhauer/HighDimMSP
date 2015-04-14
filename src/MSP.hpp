@@ -17,7 +17,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=false;
+	m_speed_up=true;
 	m_path_found=false;
 	m_newNeighboorCheck=false;
 	m_alpha=0.55*sqrt(DIM);

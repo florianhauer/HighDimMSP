@@ -56,10 +56,10 @@ template <unsigned int DIM, unsigned int DEPTH> int hashKey(Key<DIM> k){
 	return hash;
 }
 
-template<unsigned int DIM, unsigned int DEPTH> State<2> createMapRunMSPRunAs(){
+template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 	bool success=false;
 	srand (time(NULL));
-	State<2> result;
+	State<3> result;
 	while(!success){
 		//Create Tree
 		Tree<DIM>* t=new Tree<DIM>();
@@ -87,6 +87,16 @@ template<unsigned int DIM, unsigned int DEPTH> State<2> createMapRunMSPRunAs(){
 			result[0]=((double)tc)/CLOCKS_PER_SEC;
 			//printf ("It took me %d clicks (%f seconds).\n",tc,((double)tc)/CLOCKS_PER_SEC);
 			//std::cout << "solution found" <<std::endl;
+			//run mspp with the new neighboor check
+			MSP<DIM> algo2(t);
+			init=algo2.init(start,goal);
+			algo2.setNewNeighboorCheck(true);
+			tc = clock();
+			if(init && algo2.run()){
+				tc = clock() - tc;
+				success=true;
+				result[1]=((double)tc)/CLOCKS_PER_SEC;
+			}
 			//run A start on the same problem
 			Key<DIM> ks(1);
 			Key<DIM> kg=t->getRootKey()*2-ks;
@@ -131,7 +141,7 @@ template<unsigned int DIM, unsigned int DEPTH> State<2> createMapRunMSPRunAs(){
 				kshortestpaths::BasePath* r =yenAlg.next();
 				tc = clock() - tc;
 				success=true;
-				result[1]=((double)tc)/CLOCKS_PER_SEC;
+				result[2]=((double)tc)/CLOCKS_PER_SEC;
 				return result;
 			}
 		}else{
@@ -148,45 +158,45 @@ int main( int argc, const char* argv[] )
 {
 	int nb_sim=3;
 
-	State<2> results={0,0};
+	State<3> results(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<2,4>();
 	}
-	std::cout << std::endl << "results 2,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << std::endl;
+	std::cout << std::endl << "results 2,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim << std::endl;
 	std::cout << "Time reduced by " << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
-	results={0,0};
+	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<3,4>();
 	}
-	std::cout << std::endl << "results 3,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << std::endl;
+	std::cout << std::endl << "results 3,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
-	results={0,0};
+	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<4,4>();
 	}
-	std::cout << std::endl << "results 4,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << std::endl;
+	std::cout << std::endl << "results 4,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
 	nb_sim=1;
-	results={0,0};
+	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<5,4>();
 	}
-	std::cout << std::endl << "results 5,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << std::endl;
+	std::cout << std::endl << "results 5,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
-	results={0,0};
+	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<6,4>();
 	}
-	std::cout << std::endl << "results 6,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << std::endl;
+	std::cout << std::endl << "results 6,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
 
