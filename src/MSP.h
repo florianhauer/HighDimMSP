@@ -23,6 +23,7 @@ public:
 	double getPathCost(){return std::accumulate(m_path_cost.begin(),m_path_cost.end(),0.0);}
 	void setAlpha(double a){m_alpha=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
+	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
@@ -36,7 +37,7 @@ protected:
 	bool is_goal(std::pair<Key<DIM>,int> &node){return is_in(m_end_coord,node);}
 	bool is_in(Key<DIM>& pt,std::pair<Key<DIM>,int> node);
 	double cost(Node<DIM>* n);
-	void add_node_to_reduced_vertices(Node<DIM>* node,Key<DIM> key, int size);
+	void add_node_to_reduced_vertices(Node<DIM>* node,Node<DIM>* nodeReducedTree,Key<DIM> key, int size);
 	Key<DIM> m_start_coord;
 	Key<DIM> m_end_coord;
 	Key<DIM> m_current_coord;
@@ -60,6 +61,13 @@ protected:
 	double m_lambda1;
 	double m_lambda2;
 	int m_nb_step;
+
+	std::vector<std::vector<Key<DIM>>> m_nodesByDepth;
+	std::vector<std::vector<double>> m_costByDepth;
+	std::map<int, std::pair<int,int>> m_hashToIndices;
+	int hash(Key<DIM> k);
+	bool m_newNeighboorCheck;
+	Tree<DIM> m_reducedGraphTree;
 };
 
 #include "MSP.hpp"

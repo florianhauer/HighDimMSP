@@ -13,7 +13,7 @@ template <unsigned int DIM> Tree<DIM>::Tree() {
 			Key<DIM> k(temp[j]);
 			k[i]=-k[i];
 			temp[index]=k;
-			directions_[keyHash(k)]=k;
+			directions_[unitKeyHash(k)]=k;
 			++index;
 		}
 		pindex=index;
@@ -29,6 +29,12 @@ template <unsigned int DIM> Tree<DIM>::~Tree() {
 	delete root_;
 }
 
+template <unsigned int DIM> void Tree<DIM>::clear(){
+	delete root_;
+	root_=new Node<DIM>(0.0f,0);
+}
+
+
 template <unsigned int DIM> void Tree<DIM>::setMaxDepth(int depth){
 	maxDepth_=depth;
 	int c=1<<depth;
@@ -42,7 +48,7 @@ template <unsigned int DIM> void Tree<DIM>::addObstacle(State<DIM>& s){
 	}
 }
 
-template <unsigned int DIM> int	Tree<DIM>::keyHash(const Key<DIM> k){
+template <unsigned int DIM> int	Tree<DIM>::unitKeyHash(const Key<DIM> k){
 	int hash=0;
 	for(int i=0;i<DIM;++i){
 		if(k[i]<0)
@@ -65,7 +71,7 @@ template <unsigned int DIM> void Tree<DIM>::addObstacle(Key<DIM>& obs){
 		if(std::any_of(k2.begin(),k2.end(),[](int ki){return ki==0;})){
 			break;
 		}
-		int childIndex=keyHash(k2);
+		int childIndex=unitKeyHash(k2);
 		/*
 		//		std::cout << "Key " << k << " , height " << height << " , size " << size << std::endl;
 		int i=0;
@@ -98,7 +104,7 @@ template <unsigned int DIM> Node<DIM>* Tree<DIM>::getNode(const Key<DIM>& kt){
 	Key<DIM> k2;
 	while(height>=0 && !node->isLeaf() && k!=kt){
 		k2=kt-k;
-		int childIndex=keyHash(k2);
+		int childIndex=unitKeyHash(k2);
 		/*int i=0;
 		for(;i<TwoPow<DIM>::value;++i){
 			k2=k+(directions_[i]<<height)-kt;
@@ -142,7 +148,7 @@ template <unsigned int DIM> bool Tree<DIM>::getKey(const Key<DIM>& kt,Key<DIM>& 
 		if(std::any_of(k2.begin(),k2.end(),[](int ki){return ki==0;})){
 			break;
 		}
-		int childIndex=keyHash(k2);
+		int childIndex=unitKeyHash(k2);
 		/*int i=0;
 		std::array<double,TwoPow<DIM>::value> dist;
 		for(;i<TwoPow<DIM>::value;++i){

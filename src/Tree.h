@@ -19,6 +19,7 @@ public:
 	Tree();
 	~Tree();
 
+	void				clear();
 	void 				addObstacle(Key<DIM>& k);
 	void 				addObstacle(State<DIM>& s);       												//create a node a finest resolution around s with value 1
 	void 				updateRec(){root_->update(true);}												//recursively updates every value in the tree
@@ -44,7 +45,7 @@ private:
 	State<DIM> 			stateMin_;																		//"bottom left corner" of the search space
 	State<DIM> 			stateInc_;																		//state increment to reach the "top right corner" of the search space from stateMin
 	std::array<Key<DIM>,TwoPow<DIM>::value> directions_;												//vectors towards children (defines the children order)
-	int					keyHash(const Key<DIM> k);														//for a key with no 0s, it returns the index of the corresponding direction
+	int					unitKeyHash(const Key<DIM> k);														//for a key with no 0s, it returns the index of the corresponding direction
 };
 
 #include "Tree.hpp"

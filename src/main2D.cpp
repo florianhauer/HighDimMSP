@@ -67,10 +67,10 @@ int main( int argc, const char* argv[] )
 	}
 	t->updateRec();
 //	//print tree to check
-	std::streamsize prev=std::cout.width(0);
-	std::cout.flags(std::ios_base::right);
-	std::cout<<*(t->getRoot())<<std::endl;
-	std::cout.width(prev);
+//	std::streamsize prev=std::cout.width(0);
+//	std::cout.flags(std::ios_base::right);
+//	std::cout<<*(t->getRoot())<<std::endl;
+//	std::cout.width(prev);
 
 	//Create algo
 	MSP<2> algo(t);
@@ -80,6 +80,7 @@ int main( int argc, const char* argv[] )
 	bool init=algo.init(start,goal);
 	//Run algoclock_t tc;
 	clock_t tc = clock();
+	algo.setNewNeighboorCheck(true);
 	if(init && algo.run()){
 		tc = clock() - tc;
 		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);

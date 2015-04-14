@@ -146,7 +146,7 @@ template<unsigned int DIM, unsigned int DEPTH> State<2> createMapRunMSPRunAs(){
 
 int main( int argc, const char* argv[] )
 {
-	int nb_sim=10;
+	int nb_sim=3;
 
 	State<2> results={0,0};
 	for(int i=0;i<nb_sim;++i){
