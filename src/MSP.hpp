@@ -63,7 +63,7 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 		std::cout << "desired goal " << end <<std::endl;
 		std::cout << "goal " << goalKey << " , "
 				<< m_tree->getState(goalKey) << " , leaf : " <<ngoal->isLeaf()
-				<< " , epsilon obstacle : " << isEpsilonObstacle(ngoal) <<std::endl;*/
+				<< " , epsilon obstacle : " << isEpsilonObstacle(ngoal) <<std::endl;//*/
 		//exit(1);
 	}
 	return false;

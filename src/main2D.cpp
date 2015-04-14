@@ -67,20 +67,20 @@ int main( int argc, const char* argv[] )
 	}
 	t->updateRec();
 //	//print tree to check
-//	std::streamsize prev=std::cout.width(0);
-//	std::cout.flags(std::ios_base::right);
-//	std::cout<<*(t->getRoot())<<std::endl;
-//	std::cout.width(prev);
+	std::streamsize prev=std::cout.width(0);
+	std::cout.flags(std::ios_base::right);
+	std::cout<<*(t->getRoot())<<std::endl;
+	std::cout.width(prev);
 
 	//Create algo
 	MSP<2> algo(t);
 	//Set algo parameters
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
-	algo.init(start,goal);
+	bool init=algo.init(start,goal);
 	//Run algoclock_t tc;
 	clock_t tc = clock();
-	if(algo.run()){
+	if(init && algo.run()){
 		tc = clock() - tc;
 		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
