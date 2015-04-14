@@ -12,3 +12,8 @@ ADD_LIBRARY(kshortestpaths DijkstraShortestPathAlg.cpp Graph.cpp YenTopKShortest
 
 ADD_EXECUTABLE(test_graph MainP.cpp)
 TARGET_LINK_LIBRARIES(test_graph kshortestpaths)
+
+
+install(TARGETS kshortestpaths DESTINATION lib)
+install(DIRECTORY . DESTINATION include/kshortestpaths
+	FILES_MATCHING PATTERN "*.h")

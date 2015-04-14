@@ -22,7 +22,6 @@
 \usepackage{graphicx} % for pdf, bitmapped graphics files
 \usepackage{amsmath} % assumes amsmath package installed
 \usepackage{caption}
-\usepackage{subcaption}
 \usepackage{calc}
 \usepackage{forloop}
 \usepackage{pgfplots}
@@ -44,11 +43,16 @@
 2D test display
 }
 
+\newcommand{\picScale}{0.22}
 
 \author{Florian Hauer}
 
 \begin{document}
+
 \maketitle
+\begin{center}
+\input{./iterationFiles/environment.tex}
+\end{center}
 \newif\ifpaper
 \paperfalse
 \begin{center}

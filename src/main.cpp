@@ -12,13 +12,13 @@ template <unsigned int DIM> bool isObstacle(State<DIM> s){
 		return false;
 }
 
-template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float scale, Tree<DIM>* t){
+template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, Tree<DIM>* t){
 	if(depth==t->getMaxDepth()){
 		//finest resolution: update obstacle presence
 		//if obstacles
-		if(isObstacle(s)){
+		if(isObstacle(t->getState(k))){
 			//add obstacle to the tree
-			t->addObstacle(s);
+			t->addObstacle(k);
 			//indicate that the tree was updated
 			return true;
 		}else{
@@ -28,12 +28,13 @@ template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float sca
 	}else{
 		bool update=false;
 		//update children
-		 for(const State<DIM>& dir: *(t->getDirections())){
-			 update=addObstacles(s+dir*(0.5f*scale),depth+1,0.5f*scale,t) || update;
+		int size2=size>>1;
+		 for(const Key<DIM>& dir: *(t->getDirections())){
+			 update=addObstacles(k+dir*size2,depth+1,size2,t) || update;
 		 }
 		//if any children created, get node
 		 if(update){
-			 Node<DIM>* cur=t->getNode(s,depth);
+			 Node<DIM>* cur=t->getNode(k);
 			 //prune and update val (single stage, no recurrence (children are up to date))
 			 cur->update(false);
 		 }
@@ -47,16 +48,14 @@ int main( int argc, const char* argv[] )
 	//Create Tree
 	Tree<4>* t=new Tree<4>();
 	//Set Search Space Bounds
-	State<4>::VectorND minVec={-1,-1,-1,-1};
-	State<4> minState(minVec);
-	State<4>::VectorND maxVec={1,1,1,1};
-	State<4> maxState(maxVec);
+	State<4> minState={-1,-1,-1,-1};
+	State<4> maxState={1,1,1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=MAX_DEPTH;
+	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-	addObstacles(t->getRootState(),0,1.0f,t);
+	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
 //	//print tree to check
 //	std::streamsize prev=std::cout.width(0);
 //	std::cout.flags(std::ios_base::right);
@@ -66,10 +65,8 @@ int main( int argc, const char* argv[] )
 	//Create algo
 	MSP<4> algo(t);
 	//Set algo parameters
-	State<4>::VectorND startVec={1,-1,-1,-1};
-	State<4> start(startVec);
-	State<4>::VectorND goalVec={1,1,1,1};
-	State<4> goal(goalVec);
+	State<4> start={1,-1,-1,-1};
+	State<4> goal={1,1,1,1};
 	algo.init(start*0.5,goal*0.5);
 	//Run algo
 	if(algo.run()){

@@ -13,13 +13,13 @@ template <unsigned int DIM> bool isObstacle(State<DIM> s){
 		return false;
 }
 
-template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float scale, Tree<DIM>* t){
+template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, Tree<DIM>* t){
 	if(depth==t->getMaxDepth()){
 		//finest resolution: update obstacle presence
 		//if obstacles
-		if(isObstacle(s)){
+		if(isObstacle(t->getState(k))){
 			//add obstacle to the tree
-			t->addObstacle(s);
+			t->addObstacle(k);
 			//indicate that the tree was updated
 			return true;
 		}else{
@@ -29,13 +29,14 @@ template <unsigned int DIM> bool addObstacles(State<DIM> s, int depth, float sca
 	}else{
 		bool update=false;
 		//update children
-		 for(const State<DIM>& dir: *(t->getDirections())){
-			 update=addObstacles(s+dir*(0.5f*scale),depth+1,0.5f*scale,t) || update;
+		int size2=size>>1;
+		 for(const Key<DIM>& dir: *(t->getDirections())){
+			 update=addObstacles(k+dir*size2,depth+1,size2,t) || update;
 		 }
 		//if any children created, get node
 		 if(update){
-			 Node<DIM>* cur=t->getNode(s,depth);
-			 //prune and update val (single stage, no recurrence)
+			 Node<DIM>* cur=t->getNode(k);
+			 //prune and update val (single stage, no recurrence (children are up to date))
 			 cur->update(false);
 		 }
 		 //indicate if updates were performed on the tree
@@ -48,22 +49,18 @@ int main( int argc, const char* argv[] )
 	//Create Tree
 	Tree<2>* t=new Tree<2>();
 	//Set Search Space Bounds
-	State<2>::VectorND minVec={-1,-1};
-	State<2> minState(minVec);
-	State<2>::VectorND maxVec={1,1};
-	State<2> maxState(maxVec);
+	State<2> minState={-1,-1};
+	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
 	int depth=4;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-	//addObstacles(t->getRootState(),0,1.0f,t);
-	State<2>::VectorND obs={0.0006251,0.0006251};
-	State<2> sO(obs);
-	State<2>::VectorND inc={0, 0.125};
-	State<2> sI(inc);
-	for(float i=-8;i<8;i=i+0.25){
-		if(true || i!=0){
+//	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+	State<2> sO={0.0625,0.0625};
+	State<2> sI={0, 0.125};
+	for(float i=-8;i<8;++i){
+		if(i!=0){
 			State<2> s=sO+sI*i;
 			t->addObstacle(s);
 		}
@@ -78,17 +75,14 @@ int main( int argc, const char* argv[] )
 	//Create algo
 	MSP<2> algo(t);
 	//Set algo parameters
-	State<2>::VectorND startVec={-0.9,-0.9};
-	State<2> start(startVec);
-	State<2>::VectorND goalVec={0.9,0.9};
-	State<2> goal(goalVec);
-	algo.init(goal,start);
-	//Run algo
-	clock_t tc;
-	tc = clock();
+	State<2> start={-0.9,-0.9};
+	State<2> goal={0.9,0.9};
+	algo.init(start,goal);
+	//Run algoclock_t tc;
+	clock_t tc = clock();
 	if(algo.run()){
 		tc = clock() - tc;
-		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
+		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
 		std::deque<State<2>> sol=algo.getPath();
 		std::cout << "Path length: " << sol.size() << std::endl;
@@ -98,14 +92,31 @@ int main( int argc, const char* argv[] )
 			std::cout << (*it) << " -- ";
 		}
 		std::cout << std::endl;
+		std::cout << "Smoothed solution " << std::endl;
+		sol=algo.getSmoothedPath();
+		std::cout << "Path length: " << sol.size() << std::endl;
+		std::cout << "Path cost: " << algo.getPathCost() << std::endl;
+		std::cout << "Path :" << std::endl;
+		for(std::deque<State<2>>::iterator it=sol.begin(),end=sol.end();it!=end;++it){
+			std::cout << (*it) << " -- ";
+		}
+		std::cout << std::endl;
 	}else{
 		tc = clock() - tc;
-		printf ("It took me %d clicks (%f seconds).\n",tc,((float)tc)/CLOCKS_PER_SEC);
+		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "no solution found" <<std::endl;
 	}
 	//Visualize results
 
+
 	delete t;
 
 	std::cout << "no crash " << std::endl;
+	bool disppdf=false;
+	if(disppdf){
+		std::cout << "Compiling pdf" << std::endl;
+		std::stringstream ss;
+		ss << "cd " << RESDIR << ";pdflatex -interaction=nonstopmode beamer.tex >/dev/null;evince -i 0 -s beamer.pdf >/dev/null";
+		system(ss.str().c_str());
+	}
 }
