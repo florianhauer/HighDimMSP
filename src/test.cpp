@@ -156,7 +156,7 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 
 int main( int argc, const char* argv[] )
 {
-	int nb_sim=3;
+	int nb_sim=10;
 
 	State<3> results(0);
 	for(int i=0;i<nb_sim;++i){
@@ -182,7 +182,7 @@ int main( int argc, const char* argv[] )
 	std::cout << std::endl << "results 4,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
-	nb_sim=1;
+	nb_sim=5;
 	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
@@ -191,6 +191,7 @@ int main( int argc, const char* argv[] )
 	std::cout << std::endl << "results 5,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
 
+	/*
 	results=State<3>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
@@ -198,7 +199,7 @@ int main( int argc, const char* argv[] )
 	}
 	std::cout << std::endl << "results 6,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
 	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
-
+	*/
 
 	std::cout << "no crash" << std::endl;
 }
