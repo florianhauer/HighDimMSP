@@ -15,6 +15,7 @@ template <unsigned int DIM> class Node {
 public:
 	Node(float val,int depth);
 	~Node();
+	void									clear();
 	Node* 									addChild(int i);					//create a new children at position i with value val
 	bool  									childExists(int i);					//checks if child i exists
 	Node* 									getChild(int i);					//returns child i - creates it if it does not exists

@@ -32,6 +32,19 @@ template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
 	return false;
 }
 
+template <unsigned int DIM> void MSP<DIM>::clear(){
+	m_reducedGraphTree.clear();
+	m_misleading.clear();
+	m_current_path.clear();
+	m_path_cost.clear();
+	m_cost.clear();
+	m_current_forbidden.clear();
+	m_nodes.clear();
+	m_nodesByDepth.clear();
+	m_costByDepth.clear();
+	m_hashToIndices.clear();
+}
+
 
 template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end){
 	Key<DIM> startKey;
@@ -221,6 +234,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
 	){
 		if(m_newNeighboorCheck){
+			nodeReducedTree->clear();
 			int i=node->getDepth();
 			int j=m_nodesByDepth[i].size();
 			m_nodesByDepth[i].push_back(coord);
@@ -263,7 +277,7 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 		m_nodesByDepth.assign(m_tree->getMaxDepth()+1,std::vector<Key<DIM>>());
 		m_costByDepth.assign(m_tree->getMaxDepth()+1,std::vector<double>());
 		m_hashToIndices.clear();
-		m_reducedGraphTree.clear();
+		//m_reducedGraphTree.clear();
 	}else{
 		m_nodes.clear();
 		m_cost.clear();

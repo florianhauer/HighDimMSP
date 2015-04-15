@@ -15,6 +15,7 @@
 template <unsigned int DIM> class MSP{
 public:
 	MSP(Tree<DIM>* tree);
+	void clear();
 	bool init(State<DIM> start,State<DIM> end);
 	bool step();
 	bool run();
