@@ -34,6 +34,12 @@ template <unsigned int DIM> void Tree<DIM>::clear(){
 	root_=new Node<DIM>(0.0f,0);
 }
 
+template <unsigned int DIM> void Tree<DIM>::copyParams(Tree<DIM>* t){
+	maxDepth_=t->maxDepth_;
+	stateMin_=t->stateMin_;
+	stateInc_=t->stateInc_;
+}
+
 
 template <unsigned int DIM> void Tree<DIM>::setMaxDepth(int depth){
 	maxDepth_=depth;

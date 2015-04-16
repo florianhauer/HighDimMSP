@@ -19,6 +19,7 @@ public:
 	Tree();
 	~Tree();
 
+	void				copyParams(Tree<DIM>* t);
 	void				clear();
 	void 				addObstacle(Key<DIM>& k);
 	void 				addObstacle(State<DIM>& s);       												//create a node a finest resolution around s with value 1

@@ -25,6 +25,7 @@ public:
 	void setAlpha(double a){m_alpha=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
+	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);
 	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
@@ -69,6 +70,10 @@ protected:
 	long hash(Key<DIM> k);
 	bool m_newNeighboorCheck;
 	Tree<DIM> m_reducedGraphTree;
+
+	bool m_mapLearning;
+	bool (*m_isObstacle)(State<DIM> s);
+	int m_nbDraw;
 };
 
 #include "MSP.hpp"

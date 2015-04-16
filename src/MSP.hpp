@@ -20,16 +20,27 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
 	m_speed_up=true;
 	m_path_found=false;
 	m_newNeighboorCheck=false;
+	m_nbDraw=0;
+	m_isObstacle=NULL;
+	m_mapLearning=false;
 	m_alpha=0.55*sqrt(DIM);
 	m_lambda1=0.999;
 	m_lambda2=0.001;
-	m_reducedGraphTree.setMaxDepth(m_tree->getMaxDepth());
+	m_reducedGraphTree.copyParams(m_tree);
 }
 
 template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
 	if(n->getValue()>1-m_epsilon/m_tree->getVolume(n->getDepth()))
 		return true;
 	return false;
+}
+
+template <unsigned int DIM> void MSP<DIM>::setMapLearning(bool a, int n, bool (*isObstacle)(State<DIM> s)){
+	m_mapLearning=a;
+	if(a){
+		m_nbDraw=n;
+		m_isObstacle=isObstacle;
+	}
 }
 
 template <unsigned int DIM> void MSP<DIM>::clear(){
