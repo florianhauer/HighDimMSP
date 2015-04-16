@@ -210,8 +210,8 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
 	return sPath;
 }
 
-template <unsigned int DIM> int MSP<DIM>::hash(Key<DIM> k){
-	int hash=0;
+template <unsigned int DIM> long MSP<DIM>::hash(Key<DIM> k){
+	long hash=0;
 	for(int i=0;i<DIM;++i){
 		hash+=k[i];
 		if(i<(DIM-1)){
@@ -238,7 +238,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 			int i=node->getDepth();
 			int j=m_nodesByDepth[i].size();
 			m_nodesByDepth[i].push_back(coord);
-			m_hashToIndices.insert(std::pair<int,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
+			m_hashToIndices.insert(std::pair<long,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
 			m_costByDepth[i].push_back(cost(node));
 
 			m_graph.add_vertex(hash(coord),m_lambda2*(coord-m_end_coord).norm());  //TODO: use square of the cost to remove square roots

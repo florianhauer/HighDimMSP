@@ -44,9 +44,9 @@ protected:
 	Key<DIM> m_current_coord;
 	int m_current_size;
 	Tree<DIM>* m_tree;
-	int m_start_index;
+	long m_start_index;
 	int m_nb_backtrack;
-	int m_end_index;
+	long m_end_index;
 	bool m_speed_up;
 	bool m_path_found;
 	std::deque<Key<DIM>> m_current_path;
@@ -65,8 +65,8 @@ protected:
 
 	std::vector<std::vector<Key<DIM>>> m_nodesByDepth;
 	std::vector<std::vector<double>> m_costByDepth;
-	std::map<int, std::pair<int,int>> m_hashToIndices;
-	int hash(Key<DIM> k);
+	std::map<long, std::pair<int,int>> m_hashToIndices;
+	long hash(Key<DIM> k);
 	bool m_newNeighboorCheck;
 	Tree<DIM> m_reducedGraphTree;
 };

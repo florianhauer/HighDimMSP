@@ -134,7 +134,7 @@ void Graph::_import_from_file( const string& input_file_name )
 	ifs.close();	
 }
 
-void Graph::add_vertex(int node_id){
+void Graph::add_vertex(long node_id){
 	BaseVertex* vertex_pt = NULL;
 	vertex_pt = new BaseVertex();
 	vertex_pt->setID(node_id);
@@ -143,7 +143,7 @@ void Graph::add_vertex(int node_id){
 	m_nVertexNum = m_vtVertices.size();
 }
 
-void Graph::add_vertex(int node_id,double h){
+void Graph::add_vertex(long node_id,double h){
 	BaseVertex* vertex_pt = NULL;
 	vertex_pt = new BaseVertex();
 	vertex_pt->setID(node_id);
@@ -153,7 +153,7 @@ void Graph::add_vertex(int node_id,double h){
 	m_nVertexNum = m_vtVertices.size();
 }
 
-void Graph::add_edge(int start_vertex, int end_vertex, double edge_weight){
+void Graph::add_edge(long start_vertex, long end_vertex, double edge_weight){
 //	std::cout<< "add edge: "<< start_vertex << "," << end_vertex << "," << edge_weight << std::endl;
 	///3.2.1 construct the vertices
 	BaseVertex* start_vertex_pt = get_vertex(start_vertex);
@@ -172,7 +172,7 @@ void Graph::add_edge(int start_vertex, int end_vertex, double edge_weight){
 	m_nEdgeNum = m_mpEdgeCodeWeight.size();
 }
 
-BaseVertex* Graph::get_vertex( int node_id )
+BaseVertex* Graph::get_vertex( long node_id )
 {
 	if (m_stRemovedVertexIds.find(node_id) != m_stRemovedVertexIds.end())
 	{
@@ -180,10 +180,10 @@ BaseVertex* Graph::get_vertex( int node_id )
 	}else
 	{
 		BaseVertex* vertex_pt = NULL;
-		const map<int, BaseVertex*>::iterator pos = m_mpVertexIndex.find(node_id);
+		const map<long, BaseVertex*>::iterator pos = m_mpVertexIndex.find(node_id);
 		if (pos == m_mpVertexIndex.end())
 		{
-			int vertex_id = m_vtVertices.size();
+			long vertex_id = m_vtVertices.size();
 			vertex_pt = new BaseVertex();
 			vertex_pt->setID(node_id);
 			m_mpVertexIndex[node_id] = vertex_pt;
@@ -229,7 +229,7 @@ void Graph::clear()
 	m_stRemovedEdge.clear();
 }
 
-int Graph::get_edge_code( const BaseVertex* start_vertex_pt, const BaseVertex* end_vertex_pt ) const
+long Graph::get_edge_code( const BaseVertex* start_vertex_pt, const BaseVertex* end_vertex_pt ) const
 {
 	/// Note that the computation below works only if 
 	/// the result is smaller than the maximum of an integer!
@@ -256,8 +256,8 @@ set<BaseVertex*>* Graph::get_vertex_set_pt( BaseVertex* vertex_, map<BaseVertex*
 
 double Graph::get_edge_weight( const BaseVertex* source, const BaseVertex* sink )
 {
-	int source_id = source->getID();
-	int sink_id = sink->getID();
+	long source_id = source->getID();
+	long sink_id = sink->getID();
 
 	if (m_stRemovedVertexIds.find(source_id) != m_stRemovedVertexIds.end()
 		|| m_stRemovedVertexIds.find(sink_id) != m_stRemovedVertexIds.end()
@@ -273,7 +273,7 @@ double Graph::get_edge_weight( const BaseVertex* source, const BaseVertex* sink 
 
 void Graph::get_adjacent_vertices( BaseVertex* vertex, set<BaseVertex*>& vertex_set )
 {
-	int starting_vt_id = vertex->getID();
+	long starting_vt_id = vertex->getID();
 
 	if (m_stRemovedVertexIds.find(starting_vt_id) == m_stRemovedVertexIds.end())
 	{
@@ -281,7 +281,7 @@ void Graph::get_adjacent_vertices( BaseVertex* vertex, set<BaseVertex*>& vertex_
 		for(set<BaseVertex*>::const_iterator pos=(*vertex_pt_set).begin();
 			pos != (*vertex_pt_set).end(); ++pos)
 		{
-			int ending_vt_id = (*pos)->getID();
+			long ending_vt_id = (*pos)->getID();
 			if (m_stRemovedVertexIds.find(ending_vt_id) != m_stRemovedVertexIds.end()
 				|| m_stRemovedEdge.find(make_pair(starting_vt_id, ending_vt_id)) != m_stRemovedEdge.end())
 			{
@@ -297,12 +297,12 @@ void Graph::get_precedent_vertices( BaseVertex* vertex, set<BaseVertex*>& vertex
 {
 	if (m_stRemovedVertexIds.find(vertex->getID()) == m_stRemovedVertexIds.end())
 	{
-		int ending_vt_id = vertex->getID();
+		long ending_vt_id = vertex->getID();
 		set<BaseVertex*>* pre_vertex_set = get_vertex_set_pt(vertex, m_mpFaninVertices);
 		for(set<BaseVertex*>::const_iterator pos=(*pre_vertex_set).begin(); 
 			pos != (*pre_vertex_set).end(); ++pos)
 		{
-			int starting_vt_id = (*pos)->getID();
+			long starting_vt_id = (*pos)->getID();
 			if (m_stRemovedVertexIds.find(starting_vt_id) != m_stRemovedVertexIds.end()
 				|| m_stRemovedEdge.find(make_pair(starting_vt_id, ending_vt_id)) != m_stRemovedEdge.end())
 			{
@@ -316,7 +316,7 @@ void Graph::get_precedent_vertices( BaseVertex* vertex, set<BaseVertex*>& vertex
 
 double Graph::get_original_edge_weight( const BaseVertex* source, const BaseVertex* sink )
 {
-	map<int, double>::const_iterator pos = 
+	map<long, double>::const_iterator pos =
 		m_mpEdgeCodeWeight.find(get_edge_code(source, sink));
 
 	if (pos != m_mpEdgeCodeWeight.end())
