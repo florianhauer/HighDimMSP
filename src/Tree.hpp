@@ -175,9 +175,18 @@ template <unsigned int DIM> bool Tree<DIM>::getKey(const State<DIM>& s,Key<DIM>&
 	}
 	Key<DIM> ktemp;
 	std::transform(ts.begin(),ts.end(),stateInc_.begin(),ktemp.begin(),
-			[this](float si,float sInci){return (int)(si/sInci*(1<<(maxDepth_+1)));});
+			[this](float si,float sInci){double val=si/sInci*(1<<(maxDepth_+1));
+											int intval=(int)(val+0.5);
+											if(intval%2==0){
+												if(val<intval){
+													return intval-1;
+												}else{
+													return intval+1;
+												}
+											}return intval;});
 //	std::cout << stateMin_ << " , " << stateInc_ << std::endl;
 //	std::cout << ts << " , " << ktemp << std::endl;
+	std::cout << "temp key " << ktemp << std::endl;
 	return getKey(ktemp,k,inTree);
 	/*k=rootKey_;
 	Node<DIM>* node=root_;
