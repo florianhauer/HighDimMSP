@@ -6,9 +6,15 @@ template <unsigned int DIM> Node<DIM>::Node(float val,int depth):val_(val),isLea
 }
 
 template <unsigned int DIM> Node<DIM>::~Node() {
+	this->clear();
+}
+
+template <unsigned int DIM> void Node<DIM>::clear(){
 	for(int i=0;i<TwoPow<DIM>::value;++i)
-		if(childExists_[i])
+		if(childExists_[i]){
 			delete children_[i];
+			childExists_[i]=false;
+		}
 }
 
 template <unsigned int DIM> Node<DIM>* Node<DIM>::addChild(int i){

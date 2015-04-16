@@ -26,7 +26,7 @@ private: // members
 	std::map<BaseVertex*, double> m_mpStartDistanceIndex; 
 	std::map<BaseVertex*, BaseVertex*> m_mpPredecessorVertex; 
 
-	std::set<int> m_stDeterminedVertices;
+	std::set<long> m_stDeterminedVertices;
 	
 	std::multiset<BaseVertex*, WeightLess<BaseVertex> > m_quCandidateVertices;
 	

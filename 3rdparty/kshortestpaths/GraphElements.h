@@ -75,7 +75,7 @@ public:
 **************************************************************************/
 class BaseVertex
 {
-	int m_nID;
+	long m_nID;
 	double m_dWeight;
 	double m_h;
 
@@ -83,8 +83,8 @@ public:
 
 	BaseVertex():m_nID(-1),m_dWeight(0),m_h(0){}
 
-	int getID() const { return m_nID; }
-	void setID(int ID_) { m_nID = ID_; }
+	long getID() const { return m_nID; }
+	void setID(long ID_) { m_nID = ID_; }
 
 	double Weight() const { return m_dWeight; }
 	void Weight(double val) { m_dWeight = val; }

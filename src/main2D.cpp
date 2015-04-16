@@ -77,10 +77,11 @@ int main( int argc, const char* argv[] )
 	//Set algo parameters
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
-	algo.init(start,goal);
+	bool init=algo.init(start,goal);
 	//Run algoclock_t tc;
 	clock_t tc = clock();
-	if(algo.run()){
+	algo.setNewNeighboorCheck(true);
+	if(init && algo.run()){
 		tc = clock() - tc;
 		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);
 		std::cout << "solution found" <<std::endl;
