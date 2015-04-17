@@ -28,19 +28,19 @@ template <unsigned int DIM> bool  Node<DIM>::childExists(int i){
 	return childExists_[i];
 }
 
-template <unsigned int DIM> double Node<DIM>::update(bool rec){
+template <unsigned int DIM> double Node<DIM>::update(bool rec,bool prune){
 	if(isLeaf()){
 		return val_;
 	}
 	//pruning variables
-	bool prunable=pruningOn;
+	bool prunable=prune;
 	double prevVal=-1;
 	//update
 	double sum=0.0;
 	for(int i=0;i<TwoPow<DIM>::value;++i){
 		if(childExists_[i]){
 			if(rec){
-				children_[i]->update(rec);
+				children_[i]->update(rec,prune);
 			}
 			sum+=children_[i]->getValue();
 			//check if pruning possible

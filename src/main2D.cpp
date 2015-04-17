@@ -78,6 +78,7 @@ int main( int argc, const char* argv[] )
 	State<2> start={-0.9,-0.9};
 	State<2> goal={0.9,0.9};
 	bool init=algo.init(start,goal);
+	std::cout << "init " << init << std::endl;
 	//Run algoclock_t tc;
 	clock_t tc = clock();
 	algo.setNewNeighboorCheck(true);

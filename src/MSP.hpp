@@ -9,7 +9,7 @@
 #include <algorithm>
 
 
-template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree) {
+template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree),m_reducedGraphTree() {
 	m_M=100*pow(2,DIM*tree->getMaxDepth());
 	m_epsilon=0.5;
 	m_current_size=0;
@@ -38,6 +38,8 @@ template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
 template <unsigned int DIM> void MSP<DIM>::setMapLearning(bool a, int n, bool (*isObstacle)(State<DIM> s)){
 	m_mapLearning=a;
 	if(a){
+		srand (time(NULL));
+		m_newNeighboorCheck=true;
 		m_nbDraw=n;
 		m_isObstacle=isObstacle;
 	}
@@ -60,24 +62,27 @@ template <unsigned int DIM> void MSP<DIM>::clear(){
 template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end){
 	Key<DIM> startKey;
 	Key<DIM> goalKey;
-	if(!(m_tree->getKey(start,startKey,true) && m_tree->getKey(end,goalKey,true))){
+	if(!(m_tree->getKey(start,startKey,!m_mapLearning) && m_tree->getKey(end,goalKey,!m_mapLearning))){
 		std::cout << "Error converting state to key" << std::endl;
 		return false;
+	}
+	m_current_coord=startKey;
+	m_current_size=m_tree->getSize(startKey);
+	m_start_coord=startKey;
+	m_end_coord=goalKey;
+	m_current_path.clear();
+	m_path_cost.clear();
+	m_current_path.push_back(m_start_coord);
+	m_misleading.clear();
+	m_misleading[m_current_coord]=std::set<Key<DIM>>();
+	m_nb_step=0;
+	m_nb_backtrack=0;
+	if(m_mapLearning){
+		return true;
 	}
 	Node<DIM>* nstart=m_tree->getNode(startKey);
 	Node<DIM>* ngoal=m_tree->getNode(goalKey);
 	if(nstart->isLeaf() && ngoal->isLeaf() && !isEpsilonObstacle(nstart) && !isEpsilonObstacle(ngoal)){
-		m_current_coord=startKey;
-		m_current_size=m_tree->getSize(nstart->getDepth());
-		m_start_coord=startKey;
-		m_end_coord=goalKey;
-		m_current_path.clear();
-		m_path_cost.clear();
-		m_current_path.push_back(m_start_coord);
-		m_misleading.clear();
-		m_misleading[m_current_coord]=std::set<Key<DIM>>();
-		m_nb_step=0;
-		m_nb_backtrack=0;
 		return true;
 	}else{
 		/*
@@ -116,7 +121,8 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 				while(result->length()>mv_fwd){
 					int next_point_id2=result->GetVertex(mv_fwd)->getID();
 					auto it2=m_hashToIndices.find(next_point_id2);
-					if(m_tree->getNode(m_nodesByDepth[it2->second.first][it2->second.second])->isLeaf()){
+					if((!m_mapLearning && m_tree->getNode(m_nodesByDepth[it2->second.first][it2->second.second])->isLeaf())
+							|| (m_mapLearning && it2->second.first==m_tree->getMaxDepth())){
 						m_misleading[m_nodesByDepth[it->second.first][it->second.second]].insert(m_nodesByDepth[it2->second.first][it2->second.second]);
 						m_current_path.push_back(m_nodesByDepth[it2->second.first][it2->second.second]);
 						m_path_cost.push_back(m_costByDepth[it2->second.first][it2->second.second]);
@@ -203,6 +209,10 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getPath(){
 }
 
 template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
+	if(m_mapLearning){
+		std::cout<< "smoothed path not implemented yet, returning original path" << std::endl;
+		return getPath();
+	}
 	//	m_tree->updateRec();
 	std::deque<State<DIM>> sPath;
 	sPath.push_back(m_tree->getState(m_current_path[0]));
@@ -239,18 +249,43 @@ template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
 
 template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM>* node,Node<DIM>* nodeReducedTree,Key<DIM> coord, int size){
 	//	std::cout << coord << " , " << scale << " , " << node->getValue() << " , " << node->isEpsilonObstacle() << " , " << inPath(coord,scale) << " , " << (m_current_forbidden.find(coord)==m_current_forbidden.end()) << std::endl;
-	if( ( ((coord-m_current_coord).normSq()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)*(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || node->isLeaf())
+	if( ( ((coord-m_current_coord).normSq()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)*(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || (!m_mapLearning && node->isLeaf()) || m_tree->getSize(coord)==1)
 			&& !inPath(coord,size)
-			&& !isEpsilonObstacle(node)
+			&& (m_mapLearning || !isEpsilonObstacle(node))
 			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
 	){
 		if(m_newNeighboorCheck){
 			nodeReducedTree->clear();
-			int i=node->getDepth();
+			int i=nodeReducedTree->getDepth();
 			int j=m_nodesByDepth[i].size();
+
+			if(m_mapLearning){
+				if(!nodeReducedTree->isSampled()){
+					State<DIM> base,inc,draw;
+					base=m_tree->getState(coord-(*(m_tree->getDirections()))[0]*size);
+					inc=m_tree->getState(coord+(*(m_tree->getDirections()))[0]*size)-base;
+					int hitCount=0;
+					for(int test=0;test<m_nbDraw;test++){
+						for(int d=0;d<DIM;++d){
+							draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
+						}
+						if(m_isObstacle(draw)){
+							++hitCount;
+						}
+					}
+					nodeReducedTree->setValue((double)hitCount / m_nbDraw);
+					nodeReducedTree->setSampled(true);
+				}
+				//what if epsilon obstacle
+				if(isEpsilonObstacle(nodeReducedTree)){
+					return; // that should be enough
+				}
+				m_costByDepth[i].push_back(cost(nodeReducedTree));
+			}else{
+				m_costByDepth[i].push_back(cost(node));
+			}
 			m_nodesByDepth[i].push_back(coord);
 			m_hashToIndices.insert(std::pair<long,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
-			m_costByDepth[i].push_back(cost(node));
 
 			m_graph.add_vertex(hash(coord),m_lambda2*(coord-m_end_coord).norm());  //TODO: use square of the cost to remove square roots
 			std::pair<Key<DIM>,int> pair(coord,size);
@@ -274,9 +309,23 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 		}
 	}else{
 		int s=size>>1;
-		if(!node->isLeaf() && !isEpsilonObstacle(node)){
-			for(int i=0;i<TwoPow<DIM>::value;++i){
-				add_node_to_reduced_vertices(node->getChild(i),nodeReducedTree->getChild(i),coord+(*(m_tree->getDirections()))[i]*s,size*0.5);
+		if(m_mapLearning){
+			if(!isEpsilonObstacle(nodeReducedTree) && nodeReducedTree->getDepth()<m_tree->getMaxDepth()){
+				for(int i=0;i<TwoPow<DIM>::value;++i){
+					add_node_to_reduced_vertices(node,nodeReducedTree->getChild(i),coord+(*(m_tree->getDirections()))[i]*s,size>>1);
+				}
+				nodeReducedTree->update(false,false);
+				nodeReducedTree->setSampled(true);
+			}
+		}else{
+			if(!node->isLeaf() && !isEpsilonObstacle(node)){
+				for(int i=0;i<TwoPow<DIM>::value;++i){
+					if(m_newNeighboorCheck){
+						add_node_to_reduced_vertices(node->getChild(i),nodeReducedTree->getChild(i),coord+(*(m_tree->getDirections()))[i]*s,size>>1);
+					}else{
+						add_node_to_reduced_vertices(node->getChild(i),nodeReducedTree,coord+(*(m_tree->getDirections()))[i]*s,size>>1);
+					}
+				}
 			}
 		}
 	}
@@ -288,7 +337,7 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 		m_nodesByDepth.assign(m_tree->getMaxDepth()+1,std::vector<Key<DIM>>());
 		m_costByDepth.assign(m_tree->getMaxDepth()+1,std::vector<double>());
 		m_hashToIndices.clear();
-		//m_reducedGraphTree.clear();
+		//m_reducedGraphTree.clear(); // instead of recreating the tree at each iteration, we remove just the  unnescessary nodes during the reduced graph construction
 	}else{
 		m_nodes.clear();
 		m_cost.clear();
@@ -449,7 +498,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			}
 		}
 	}
-	bool latex=false;
+	bool latex=true;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
@@ -483,11 +532,19 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
 				int nodeSize=m_tree->getSize(i);
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
-					file << "\\draw[treenodes, fill=red!" << m_tree->getNode(m_nodesByDepth[i][j])->getValue()*100.0 << "] "
-							<< m_nodesByDepth[i][j]-(*(m_tree->getDirections()))[0]*nodeSize
-							<< " rectangle "
-							<< m_nodesByDepth[i][j]+(*(m_tree->getDirections()))[0]*nodeSize
-							<< ";" << std::endl;
+					if(m_mapLearning){
+						file << "\\draw[treenodes, fill=red!" << m_reducedGraphTree.getNode(m_nodesByDepth[i][j])->getValue()*100.0 << "] "
+								<< m_nodesByDepth[i][j]-(*(m_tree->getDirections()))[0]*nodeSize
+								<< " rectangle "
+								<< m_nodesByDepth[i][j]+(*(m_tree->getDirections()))[0]*nodeSize
+								<< ";" << std::endl;
+					}else{
+						file << "\\draw[treenodes, fill=red!" << m_tree->getNode(m_nodesByDepth[i][j])->getValue()*100.0 << "] "
+								<< m_nodesByDepth[i][j]-(*(m_tree->getDirections()))[0]*nodeSize
+								<< " rectangle "
+								<< m_nodesByDepth[i][j]+(*(m_tree->getDirections()))[0]*nodeSize
+								<< ";" << std::endl;
+					}
 				}
 			}
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
