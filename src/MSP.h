@@ -15,6 +15,7 @@
 template <unsigned int DIM> class MSP{
 public:
 	MSP(Tree<DIM>* tree);
+	~MSP();
 	void clear();
 	bool init(State<DIM> start,State<DIM> end);
 	bool step();
@@ -23,6 +24,7 @@ public:
 	std::deque<State<DIM>> getSmoothedPath();
 	double getPathCost(){return std::accumulate(m_path_cost.begin(),m_path_cost.end(),0.0);}
 	void setAlpha(double a){m_alpha=a;}
+	void setEpsilon(double a){m_epsilon=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);

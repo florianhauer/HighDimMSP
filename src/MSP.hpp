@@ -17,7 +17,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree),m_reduce
 	m_nb_backtrack=0;
 	m_nb_step=0;
 	m_start_index=0;
-	m_speed_up=true;
+	m_speed_up=false;
 	m_path_found=false;
 	m_newNeighboorCheck=false;
 	m_nbDraw=0;
@@ -27,6 +27,10 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree),m_reduce
 	m_lambda1=0.999;
 	m_lambda2=0.001;
 	m_reducedGraphTree.copyParams(m_tree);
+}
+
+template <unsigned int DIM> MSP<DIM>::~MSP() {
+	clear();
 }
 
 template <unsigned int DIM> bool MSP<DIM>::isEpsilonObstacle(Node<DIM>* n){
@@ -210,8 +214,35 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getPath(){
 
 template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
 	if(m_mapLearning){
-		std::cout<< "smoothed path not implemented yet, returning original path" << std::endl;
-		return getPath();
+//		std::cout << "banana" << std::endl;
+		std::deque<State<DIM>> path=getPath();
+		std::deque<State<DIM>> smoothedPath;
+		smoothedPath.push_back(path[0]);
+		State<DIM> scur=path[0];
+		State<DIM> su=m_tree->getState(m_tree->getRootKey()+Key<DIM>(1))-m_tree->getState(m_tree->getRootKey());
+		double inc=0.2*su.min();
+//		double inc=0.02;
+		int i=2;
+		while(i<path.size()){
+			State<DIM> snext=path[i];
+//			std::cout << "scur " <<scur << " snext " << snext << std::endl;
+			int jmax=(int)((snext-scur).norm()/inc);
+//			std::vector<int> v(jmax+1);
+//			std::iota(v.begin(), v.end(), 0);
+			bool safe=true;
+			for(int j=0;safe && j<=jmax;++j){
+//				std::cout << "testing " << scur+(snext-scur)*(j*inc/(snext-scur).norm()) << std::endl;
+				safe=!m_isObstacle(scur+(snext-scur)*(j*inc/(snext-scur).norm()));
+			}
+//			if(std::any_of(v.begin(),v.end(),[this,scur,snext](int j){return m_isObstacle(scur+(snext-scur)*((double)j/(snext-scur).norm()));})){
+			if(!safe){
+				scur=path[i-1];
+				smoothedPath.push_back(scur);
+			}
+			++i;
+		}
+		smoothedPath.push_back(path.back());
+		return smoothedPath;
 	}
 	//	m_tree->updateRec();
 	std::deque<State<DIM>> sPath;
@@ -498,7 +529,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			}
 		}
 	}
-	bool latex=true;
+	bool latex=false;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
