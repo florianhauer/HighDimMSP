@@ -15,7 +15,7 @@
 #include <set>
 
 using namespace std;
-namespace kshortestpaths{
+namespace astar{
 
 class Path : public BasePath
 {
@@ -121,3 +121,5 @@ private:
 
 };
 }
+
+#include "Graph.hpp"

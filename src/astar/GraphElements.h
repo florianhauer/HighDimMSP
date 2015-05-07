@@ -15,7 +15,7 @@
 #include <iostream>
 
 
-namespace kshortestpaths{
+namespace astar{
 
 template<class T>
 class WeightGreater

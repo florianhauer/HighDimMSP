@@ -59,7 +59,7 @@ template <unsigned int DIM, unsigned int DEPTH> int hashKey(Key<DIM> k){
 template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 	bool success=false;
 	srand (time(NULL));
-	State<3> result;
+	State<3> result(0.0);
 	while(!success){
 		//Create Tree
 		Tree<DIM>* t=new Tree<DIM>();
@@ -98,13 +98,15 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 				success=true;
 				result[1]=((double)tc)/CLOCKS_PER_SEC;
 				algo2.clear();
+				return result;
 			}
+			/*
 			//run A start on the same problem
 			Key<DIM> ks(1);
 			Key<DIM> kg=t->getRootKey()*2-ks;
 			delete t;
 			int is=-1,ig=-1;
-			kshortestpaths::Graph graph;
+			astar::Graph graph;
 			for(int i=0;i<vertices.size();++i){
 				graph.add_vertex(hashKey<DIM,DEPTH>(vertices[i]),(vertices[i]-kg).norm());
 				if((vertices[i]-ks).norm()==0){
@@ -126,13 +128,6 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 						}
 					}
 				}
-				/*
-				for(int j=i+1;j<vertices.size();++j){
-					if((vertices[i]-vertices[j]).norm()==2){
-						graph.add_edge(i,j,2);
-						graph.add_edge(j,i,2);
-					}
-				}*/
 			}
 			vertices.clear();
 			if(is==-1 || ig==-1){
@@ -140,14 +135,14 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 				exit(1);
 			}
 			tc = clock();
-			kshortestpaths::YenTopKShortestPathsAlg yenAlg(graph, graph.get_vertex(is),graph.get_vertex(ig));
+			astar::YenTopKShortestPathsAlg yenAlg(graph, graph.get_vertex(is),graph.get_vertex(ig));
 			if(yenAlg.has_next()){
-				kshortestpaths::BasePath* r =yenAlg.next();
+				astar::BasePath* r =yenAlg.next();
 				tc = clock() - tc;
 				success=true;
 				result[2]=((double)tc)/CLOCKS_PER_SEC;
 				return result;
-			}
+			}//*/
 		}else{
 			//std::cout << "no solution found" <<std::endl;
 			srand (time(NULL)+rand());

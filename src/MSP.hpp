@@ -1,5 +1,4 @@
-#include <kshortestpaths/DijkstraShortestPathAlg.h>
-#include <kshortestpaths/YenTopKShortestPathsAlg.h>
+#include "astar/Astar.h"
 #include <set>
 #include <cmath>
 #include <numeric>
@@ -106,11 +105,11 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 
 template <unsigned int DIM> bool MSP<DIM>::step(){
 	reducedGraph();
-	kshortestpaths::YenTopKShortestPathsAlg yenAlg(m_graph, m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
+	astar::Astar sp(&m_graph);
+	astar::BasePath* result=sp.get_shortest_path(m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
 	//if solution
-	if(yenAlg.has_next()){
+	if(result->Weight()!=astar::Graph::DISCONNECT){
 		//go forward // if goal return false;
-		kshortestpaths::BasePath* result =yenAlg.next();
 		iterationDetails(result);
 		int next_point_id=result->GetVertex(1)->getID();
 		//do stuff to prepare next iteration
@@ -170,6 +169,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 			m_current_size=m_nodes[next_point_id].second;
 
 		}
+		delete result;
 
 		if(next_point_id==m_end_index){
 			//std::cout << "goal reached in " << m_nb_step << " iterations" << std::endl;
@@ -180,6 +180,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 		}
 
 	}else{
+		delete result;
 		iterationDetails();
 		m_misleading[m_current_coord].clear();
 		m_nb_backtrack++;
@@ -271,6 +272,26 @@ template <unsigned int DIM> long MSP<DIM>::hash(Key<DIM> k){
 		}
 	}
 	return hash;
+}
+
+template <unsigned int DIM> Key<DIM> MSP<DIM>::key(long hash){
+	Key<DIM> k;
+	long basem1=1<<(m_tree->getMaxDepth()+1)-1;
+	for(int i=DIM-1;i>=0;--i){
+		k[i]=hash & basem1; // =hash%1<<(m_tree->getMaxDepth()+1)
+		hash=hash>>(m_tree->getMaxDepth()+1);
+	}
+	return k;
+}
+
+template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
+	//find neighbors
+
+	//if unsampled, sample
+
+	//calculate cost
+
+	//add edges to graph
 }
 
 template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
@@ -482,7 +503,7 @@ template <unsigned int DIM> bool MSP<DIM>::neighboor(std::pair<Key<DIM>,int> &na
 	return false;
 }
 
-template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::BasePath* result){
+template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* result){
 	bool console=false;
 	if(console){
 		if(m_newNeighboorCheck){
@@ -502,7 +523,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 				std::cout << "depth " << i << std::endl;
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
 					std::cout << "Vertex " << hash(m_nodesByDepth[i][j]) << " at " << m_nodesByDepth[i][j] << " and cost " << m_costByDepth[i][j] << ", neighbor with ";
-					std::set<kshortestpaths::BaseVertex*> vertex_set;
+					std::set<astar::BaseVertex*> vertex_set;
 					m_graph.get_adjacent_vertices(m_graph.get_vertex(hash(m_nodesByDepth[i][j])),vertex_set);
 					for(auto it:vertex_set){
 						std::cout << it->getID() << " , ";
@@ -592,7 +613,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(kshortestpaths::Base
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
 				int nodeSize=m_tree->getSize(i);
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
-					std::set<kshortestpaths::BaseVertex*> vertex_set;
+					std::set<astar::BaseVertex*> vertex_set;
 					m_graph.get_adjacent_vertices(m_graph.get_vertex(hash(m_nodesByDepth[i][j])),vertex_set);
 					for(auto it:vertex_set){
 						file << "\\path[draw] (" << hash(m_nodesByDepth[i][j]) << ") -- (" << it->getID() << ");" << std::endl;

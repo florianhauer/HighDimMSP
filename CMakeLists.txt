@@ -14,7 +14,4 @@ SET( CMAKE_BUILD_TYPE Release)
 # -Ofast
 SET( CMAKE_CXX_FLAGS  "-Ofast -std=c++0x -Wno-unused-result -DRESDIR2=\"${RESULT_DIRECTORY}\" " )
 
-
-include_directories("./3rdparty/")
-ADD_SUBDIRECTORY( 3rdparty )
 ADD_SUBDIRECTORY( src )

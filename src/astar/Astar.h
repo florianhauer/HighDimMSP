@@ -15,9 +15,9 @@
 
 using namespace std;
 
-namespace kshortestpaths{
+namespace astar{
 
-class DijkstraShortestPathAlg
+class Astar
 {
 private: // members
 
@@ -30,9 +30,13 @@ private: // members
 	
 	std::multiset<BaseVertex*, WeightLess<BaseVertex> > m_quCandidateVertices;
 	
+	bool m_exploration;
+	void (*m_explore)(long vertex_id);
+
 public:
-	DijkstraShortestPathAlg(Graph* pGraph):m_pDirectGraph(pGraph){}
-	~DijkstraShortestPathAlg(void){clear();}
+	Astar(Graph* pGraph,bool expl=false, void (*explore)(long vertex_id)=NULL)
+		:m_pDirectGraph(pGraph), m_exploration(expl), m_explore(explore){}
+	~Astar(void){clear();}
 
 	void clear();
 
@@ -55,19 +59,18 @@ public:
 
 	void get_shortest_path_flower(BaseVertex* root)
 	{
-		determine_shortest_paths(NULL, root, false);
+		determine_shortest_paths(NULL, root);
 	}
 
-	// The following two methods are prepared for the top-k shortest paths algorithm
-	BasePath* update_cost_forward(BaseVertex* vertex);
-	void correct_cost_backward(BaseVertex* vertex);
 
 protected:
 
-	void determine_shortest_paths(BaseVertex* source, BaseVertex* sink, bool is_source2sink);
+	void determine_shortest_paths(BaseVertex* source, BaseVertex* sink);
 
-	void improve2vertex(BaseVertex* cur_vertex_pt, bool is_source2sink);
+	void improve2vertex(BaseVertex* cur_vertex_pt);
 
 };
 
 }
+
+#include "Astar.hpp"

@@ -7,7 +7,7 @@
 #include <vector>
 #include <utility>
 #include <string>
-#include <kshortestpaths/Graph.h>
+#include "astar/Graph.h"
 #include "Tree.h"
 #include "State.h"
 #include "Key.h"
@@ -26,12 +26,13 @@ public:
 	void setAlpha(double a){m_alpha=a;}
 	void setEpsilon(double a){m_epsilon=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
+	void setMinRGcalc(bool a){m_minRGcalc=a;}
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);
 	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
-	void iterationDetails(kshortestpaths::BasePath* result=NULL);
+	void iterationDetails(astar::BasePath* result=NULL);
 	void drawTree(std::ostream& stream);
 	void drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size);
 	bool inPath(Key<DIM> pt,int size);
@@ -53,7 +54,7 @@ protected:
 	bool m_speed_up;
 	bool m_path_found;
 	std::deque<Key<DIM>> m_current_path;
-	kshortestpaths::Graph m_graph;
+	astar::Graph m_graph;
 	std::map<Key<DIM>,std::set<Key<DIM>>> m_misleading;
 	std::set<Key<DIM>> m_current_forbidden;
 	double m_alpha;//used in reduced graph as parameter for decomposition
@@ -70,12 +71,16 @@ protected:
 	std::vector<std::vector<double>> m_costByDepth;
 	std::map<long, std::pair<int,int>> m_hashToIndices;
 	long hash(Key<DIM> k);
+	Key<DIM> key(long hash);
 	bool m_newNeighboorCheck;
 	Tree<DIM> m_reducedGraphTree;
 
 	bool m_mapLearning;
 	bool (*m_isObstacle)(State<DIM> s);
 	int m_nbDraw;
+
+	bool m_minRGcalc;
+	void exploreVertex(long hash);
 };
 
 #include "MSP.hpp"

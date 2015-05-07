@@ -21,7 +21,7 @@
 #include "Graph.h"
 
 
-namespace kshortestpaths{
+namespace astar{
 const double Graph::DISCONNECT = (numeric_limits<double>::max)();
 
 
