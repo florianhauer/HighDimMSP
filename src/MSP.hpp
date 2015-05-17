@@ -523,7 +523,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 				std::cout << "depth " << i << std::endl;
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
 					std::cout << "Vertex " << hash(m_nodesByDepth[i][j]) << " at " << m_nodesByDepth[i][j] << " and cost " << m_costByDepth[i][j] << ", neighbor with ";
-					std::set<astar::BaseVertex*> vertex_set;
+					std::unordered_set<astar::BaseVertex*> vertex_set;
 					m_graph.get_adjacent_vertices(m_graph.get_vertex(hash(m_nodesByDepth[i][j])),vertex_set);
 					for(auto it:vertex_set){
 						std::cout << it->getID() << " , ";
@@ -613,7 +613,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
 				int nodeSize=m_tree->getSize(i);
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
-					std::set<astar::BaseVertex*> vertex_set;
+					std::unordered_set<astar::BaseVertex*> vertex_set;
 					m_graph.get_adjacent_vertices(m_graph.get_vertex(hash(m_nodesByDepth[i][j])),vertex_set);
 					for(auto it:vertex_set){
 						file << "\\path[draw] (" << hash(m_nodesByDepth[i][j]) << ") -- (" << it->getID() << ");" << std::endl;

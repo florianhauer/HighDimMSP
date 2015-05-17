@@ -13,12 +13,6 @@
 
 #include "Astar.h"
 
-#include <set>
-#include <map>
-#include <vector>
-
-#include "GraphElements.h"
-#include "Graph.h"
 
 namespace astar{
 
@@ -27,7 +21,7 @@ BasePath* Astar::get_shortest_path( BaseVertex* source, BaseVertex* sink )
 	determine_shortest_paths(source, sink);
 
 	std::vector<BaseVertex*> vertex_list;
-	std::map<BaseVertex*, double>::const_iterator pos = 
+	std::unordered_map<BaseVertex*, double>::const_iterator pos =
 			m_mpStartDistanceIndex.find(sink);
 	double weight = pos != m_mpStartDistanceIndex.end() ? pos->second : Graph::DISCONNECT;
 
@@ -38,7 +32,7 @@ BasePath* Astar::get_shortest_path( BaseVertex* source, BaseVertex* sink )
 		{
 			vertex_list.insert(vertex_list.begin(), cur_vertex_pt);
 
-			std::map<BaseVertex*, BaseVertex*>::const_iterator pre_pos = 
+			std::unordered_map<BaseVertex*, BaseVertex*>::const_iterator pre_pos =
 					m_mpPredecessorVertex.find(cur_vertex_pt);
 
 			if (pre_pos == m_mpPredecessorVertex.end()) break;
@@ -87,13 +81,13 @@ void Astar::determine_shortest_paths( BaseVertex* source, BaseVertex* sink )
 void Astar::improve2vertex( BaseVertex* cur_vertex_pt )
 {
 	// 1. get the neighboring vertices 
-	set<BaseVertex*>* neighbor_vertex_list_pt = new set<BaseVertex*>();
+	VertexPtSet* neighbor_vertex_list_pt = new VertexPtSet();
 
 	m_pDirectGraph->get_adjacent_vertices(cur_vertex_pt, *neighbor_vertex_list_pt);
 
 
 	// 2. update the distance passing on the current vertex
-	for(set<BaseVertex*>::iterator cur_neighbor_pos=neighbor_vertex_list_pt->begin(); 
+	for(VertexPtSet::iterator cur_neighbor_pos=neighbor_vertex_list_pt->begin();
 			cur_neighbor_pos!=neighbor_vertex_list_pt->end(); ++cur_neighbor_pos)
 	{
 		//2.1 skip if it has been visited before
@@ -103,7 +97,7 @@ void Astar::improve2vertex( BaseVertex* cur_vertex_pt )
 		}
 
 		//2.2 calculate the distance
-		map<BaseVertex*, double>::const_iterator cur_pos = m_mpStartDistanceIndex.find(cur_vertex_pt);
+		unordered_map<BaseVertex*, double>::const_iterator cur_pos = m_mpStartDistanceIndex.find(cur_vertex_pt);
 		double distance =  cur_pos != m_mpStartDistanceIndex.end() ? cur_pos->second : Graph::DISCONNECT;
 
 		distance += m_pDirectGraph->get_edge_weight(cur_vertex_pt, *cur_neighbor_pos) ;

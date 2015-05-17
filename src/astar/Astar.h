@@ -13,6 +13,11 @@
 
 #pragma once
 
+#include <vector>
+
+#include "GraphElements.h"
+#include "Graph.h"
+
 using namespace std;
 
 namespace astar{
@@ -23,10 +28,10 @@ private: // members
 
 	Graph* m_pDirectGraph;
 
-	std::map<BaseVertex*, double> m_mpStartDistanceIndex; 
-	std::map<BaseVertex*, BaseVertex*> m_mpPredecessorVertex; 
+	std::unordered_map<BaseVertex*, double> m_mpStartDistanceIndex;
+	std::unordered_map<BaseVertex*, BaseVertex*> m_mpPredecessorVertex;
 
-	std::set<long> m_stDeterminedVertices;
+	std::unordered_set<long> m_stDeterminedVertices;
 	
 	std::multiset<BaseVertex*, WeightLess<BaseVertex> > m_quCandidateVertices;
 	

@@ -12,10 +12,18 @@
 
 #pragma once
 #include "GraphElements.h"
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
+#include <functional>
 
 using namespace std;
 namespace astar{
+
+typedef unordered_set<BaseVertex*> VertexPtSet;
+typedef unordered_map<BaseVertex*, VertexPtSet*> BaseVertexPt2SetMap;
+
+typedef VertexPtSet::iterator VertexPtSetIterator;
+typedef BaseVertexPt2SetMap::iterator BaseVertexPt2SetMapIterator;
 
 class Path : public BasePath
 {
@@ -41,24 +49,21 @@ public: // members
 
 	const static double DISCONNECT; 
 
-	typedef set<BaseVertex*>::iterator VertexPtSetIterator;
-	typedef map<BaseVertex*, set<BaseVertex*>*>::iterator BaseVertexPt2SetMapIterator;
-
 protected: // members
 
 	// Basic information
-	map<BaseVertex*, set<BaseVertex*>*> m_mpFanoutVertices;
-	map<BaseVertex*, set<BaseVertex*>*> m_mpFaninVertices;
-	map<long, double> m_mpEdgeCodeWeight;
+	BaseVertexPt2SetMap m_mpFanoutVertices;
+//	BaseVertexPt2SetMap m_mpFaninVertices;
+	unordered_map<long, double> m_mpEdgeCodeWeight;
 	vector<BaseVertex*> m_vtVertices;
 	long m_nEdgeNum;
 	long m_nVertexNum;
 
-	map<long, BaseVertex*> m_mpVertexIndex;
+	unordered_map<long, BaseVertex*> m_mpVertexIndex;
 
 	// Members for graph modification
-	set<long> m_stRemovedVertexIds;
-	set<pair<long,long> > m_stRemovedEdge;
+//	set<long> m_stRemovedVertexIds;
+//	set<pair<long,long> > m_stRemovedEdge;
 
 public:
 
@@ -77,44 +82,44 @@ public:
 	BaseVertex* get_vertex(long node_id);
 	
 	long get_edge_code(const BaseVertex* start_vertex_pt, const BaseVertex* end_vertex_pt) const;
-	set<BaseVertex*>* get_vertex_set_pt(BaseVertex* vertex_, map<BaseVertex*, set<BaseVertex*>*>& vertex_container_index);
+	VertexPtSet* get_vertex_set_pt(BaseVertex* vertex_, BaseVertexPt2SetMap& vertex_container_index);
 
 	double get_original_edge_weight(const BaseVertex* source, const BaseVertex* sink);
 
 	double get_edge_weight(const BaseVertex* source, const BaseVertex* sink);
-	void get_adjacent_vertices(BaseVertex* vertex, set<BaseVertex*>& vertex_set);
-	void get_precedent_vertices(BaseVertex* vertex, set<BaseVertex*>& vertex_set);
+	void get_adjacent_vertices(BaseVertex* vertex, VertexPtSet& vertex_set);
+//	void get_precedent_vertices(BaseVertex* vertex, VertexPtSet& vertex_set);
 
 	/// Methods for changing graph
-	void remove_edge(const pair<long,long> edge)
-	{
-		m_stRemovedEdge.insert(edge);
-	}
-
-	void remove_vertex(const long vertex_id)
-	{
-		m_stRemovedVertexIds.insert(vertex_id);
-	}
-
-	void recover_removed_edges()
-	{
-		m_stRemovedEdge.clear();
-	}
-
-	void recover_removed_vertices()
-	{
-		m_stRemovedVertexIds.clear();
-	}
-
-	void recover_removed_edge(const pair<long,long> edge)
-	{
-		m_stRemovedEdge.erase(m_stRemovedEdge.find(edge));
-	}
-
-	void recover_removed_vertex(long vertex_id)
-	{
-		m_stRemovedVertexIds.erase(m_stRemovedVertexIds.find(vertex_id));
-	}
+//	void remove_edge(const pair<long,long> edge)
+//	{
+//		m_stRemovedEdge.insert(edge);
+//	}
+//
+//	void remove_vertex(const long vertex_id)
+//	{
+//		m_stRemovedVertexIds.insert(vertex_id);
+//	}
+//
+//	void recover_removed_edges()
+//	{
+//		m_stRemovedEdge.clear();
+//	}
+//
+//	void recover_removed_vertices()
+//	{
+//		m_stRemovedVertexIds.clear();
+//	}
+//
+//	void recover_removed_edge(const pair<long,long> edge)
+//	{
+//		m_stRemovedEdge.erase(m_stRemovedEdge.find(edge));
+//	}
+//
+//	void recover_removed_vertex(long vertex_id)
+//	{
+//		m_stRemovedVertexIds.erase(m_stRemovedVertexIds.find(vertex_id));
+//	}
 	
 private:
 	void _import_from_file(const std::string& file_name);
