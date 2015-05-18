@@ -82,6 +82,7 @@ int main( int argc, const char* argv[] )
 	//Run algoclock_t tc;
 	clock_t tc = clock();
 	algo.setNewNeighboorCheck(true);
+	algo.setMinRGcalc(true);
 	if(init && algo.run()){
 		tc = clock() - tc;
 		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);

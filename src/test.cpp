@@ -98,7 +98,17 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 				success=true;
 				result[1]=((double)tc)/CLOCKS_PER_SEC;
 				algo2.clear();
-				return result;
+				MSP<DIM> algo3(t);
+				init=algo3.init(start,goal);
+				algo3.setMinRGcalc(true);
+				tc = clock();
+				if(init && algo3.run()){
+					tc = clock() - tc;
+					success=true;
+					result[2]=((double)tc)/CLOCKS_PER_SEC;
+					algo3.clear();
+					return result;
+				}
 			}
 			/*
 			//run A start on the same problem

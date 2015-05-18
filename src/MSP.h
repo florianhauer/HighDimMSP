@@ -27,12 +27,13 @@ public:
 	void setAlpha(double a){m_alpha=a;}
 	void setEpsilon(double a){m_epsilon=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
-	void setMinRGcalc(bool a){m_minRGcalc=a;}
+	void setMinRGcalc(bool a){m_minRGcalc=a;setNewNeighboorCheck(true);}
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);
 	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
+	void addLeafInDirection(std::deque<Key<DIM>>list,Node<DIM>* n,Key<DIM> kInTree,int d,int dir);
 	void iterationDetails(astar::BasePath* result=NULL);
 	void drawTree(std::ostream& stream);
 	void drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size);

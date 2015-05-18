@@ -36,10 +36,12 @@ private: // members
 	std::multiset<BaseVertex*, WeightLess<BaseVertex> > m_quCandidateVertices;
 	
 	bool m_exploration;
-	void (*m_explore)(long vertex_id);
+//	void (*m_explore)(long vertex_id);
+	std::function<void(long)> m_explore;
 
 public:
-	Astar(Graph* pGraph,bool expl=false, void (*explore)(long vertex_id)=NULL)
+	Astar(){}
+	Astar(Graph* pGraph,bool expl=false, std::function<void(long)> explore=NULL)
 		:m_pDirectGraph(pGraph), m_exploration(expl), m_explore(explore){}
 	~Astar(void){clear();}
 

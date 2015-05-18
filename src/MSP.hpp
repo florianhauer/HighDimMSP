@@ -19,6 +19,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree),m_reduce
 	m_speed_up=false;
 	m_path_found=false;
 	m_newNeighboorCheck=false;
+	m_minRGcalc=false;
 	m_nbDraw=0;
 	m_isObstacle=NULL;
 	m_mapLearning=false;
@@ -105,7 +106,12 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 
 template <unsigned int DIM> bool MSP<DIM>::step(){
 	reducedGraph();
-	astar::Astar sp(&m_graph);
+	astar::Astar sp;
+	if(m_minRGcalc){
+		sp=astar::Astar(&m_graph,true,[this](long vertex_id)->void{this->exploreVertex(vertex_id);});
+	}else{
+		sp=astar::Astar(&m_graph);
+	}
 	astar::BasePath* result=sp.get_shortest_path(m_graph.get_vertex(m_start_index),m_graph.get_vertex(m_end_index));
 	//if solution
 	if(result->Weight()!=astar::Graph::DISCONNECT){
@@ -139,9 +145,9 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 			}
 
 			m_current_coord=m_nodesByDepth[it->second.first][it->second.second];
-//			std::cout << "next id " << next_point_id << std::endl;
-//			std::cout << "it " << it->first << " , " << it->second.first << " , " << it->second.second << std::endl;
-//			std::cout << "new nkipi " << m_current_coord <<std::endl;
+			//			std::cout << "next id " << next_point_id << std::endl;
+			//			std::cout << "it " << it->first << " , " << it->second.first << " , " << it->second.second << std::endl;
+			//			std::cout << "new nkipi " << m_current_coord <<std::endl;
 			m_current_size=m_tree->getSize(it->second.first);
 
 		}else{
@@ -215,27 +221,27 @@ template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getPath(){
 
 template <unsigned int DIM> std::deque<State<DIM>> MSP<DIM>::getSmoothedPath(){
 	if(m_mapLearning){
-//		std::cout << "banana" << std::endl;
+		//		std::cout << "banana" << std::endl;
 		std::deque<State<DIM>> path=getPath();
 		std::deque<State<DIM>> smoothedPath;
 		smoothedPath.push_back(path[0]);
 		State<DIM> scur=path[0];
 		State<DIM> su=m_tree->getState(m_tree->getRootKey()+Key<DIM>(1))-m_tree->getState(m_tree->getRootKey());
 		double inc=0.2*su.min();
-//		double inc=0.02;
+		//		double inc=0.02;
 		int i=2;
 		while(i<path.size()){
 			State<DIM> snext=path[i];
-//			std::cout << "scur " <<scur << " snext " << snext << std::endl;
+			//			std::cout << "scur " <<scur << " snext " << snext << std::endl;
 			int jmax=(int)((snext-scur).norm()/inc);
-//			std::vector<int> v(jmax+1);
-//			std::iota(v.begin(), v.end(), 0);
+			//			std::vector<int> v(jmax+1);
+			//			std::iota(v.begin(), v.end(), 0);
 			bool safe=true;
 			for(int j=0;safe && j<=jmax;++j){
-//				std::cout << "testing " << scur+(snext-scur)*(j*inc/(snext-scur).norm()) << std::endl;
+				//				std::cout << "testing " << scur+(snext-scur)*(j*inc/(snext-scur).norm()) << std::endl;
 				safe=!m_isObstacle(scur+(snext-scur)*(j*inc/(snext-scur).norm()));
 			}
-//			if(std::any_of(v.begin(),v.end(),[this,scur,snext](int j){return m_isObstacle(scur+(snext-scur)*((double)j/(snext-scur).norm()));})){
+			//			if(std::any_of(v.begin(),v.end(),[this,scur,snext](int j){return m_isObstacle(scur+(snext-scur)*((double)j/(snext-scur).norm()));})){
 			if(!safe){
 				scur=path[i-1];
 				smoothedPath.push_back(scur);
@@ -276,7 +282,7 @@ template <unsigned int DIM> long MSP<DIM>::hash(Key<DIM> k){
 
 template <unsigned int DIM> Key<DIM> MSP<DIM>::key(long hash){
 	Key<DIM> k;
-	long basem1=1<<(m_tree->getMaxDepth()+1)-1;
+	long basem1=(1<<(m_tree->getMaxDepth()+1))-1;
 	for(int i=DIM-1;i>=0;--i){
 		k[i]=hash & basem1; // =hash%1<<(m_tree->getMaxDepth()+1)
 		hash=hash>>(m_tree->getMaxDepth()+1);
@@ -286,42 +292,111 @@ template <unsigned int DIM> Key<DIM> MSP<DIM>::key(long hash){
 
 template <unsigned int DIM> std::deque<Key<DIM>> MSP<DIM>::getNeighboors(Key<DIM> k){
 	std::deque<Key<DIM>> list;
-
+	int sideLength=m_tree->getSize(k)*2;
+	int maxVal=1<<(m_tree->getMaxDepth()+1);
+	for(int d=0;d<DIM;++d){
+		k[d]+=sideLength;
+		//test positif neighboor
+		if(k[d]<maxVal){
+			Key<DIM> kInTree;
+			m_reducedGraphTree.getKey(k,kInTree,true);
+			if(m_tree->getSize(kInTree)*2>sideLength){
+				//big neighbor
+				list.push_back(kInTree);
+			}else{
+				Node<DIM>* n=m_reducedGraphTree.getNode(kInTree);
+				if(n->isLeaf()){
+					//same size neighbor
+					list.push_back(kInTree);
+				}else{
+					//smaller neighboors
+					addLeafInDirection(list,n,kInTree,d,-1);
+				}
+			}
+		}
+		k[d]-=2*sideLength;
+		//test positif neighboor
+		if(k[d]>0){
+			Key<DIM> kInTree;
+			m_reducedGraphTree.getKey(k,kInTree,true);
+			if(m_tree->getSize(kInTree)*2>sideLength){
+				//big neighbor
+				list.push_back(kInTree);
+			}else{
+				Node<DIM>* n=m_reducedGraphTree.getNode(kInTree);
+				if(n->isLeaf()){
+					//same size neighbor
+					list.push_back(kInTree);
+				}else{
+					//smaller neighboors
+					addLeafInDirection(list,n,kInTree,d,1);
+				}
+			}
+		}
+		k[d]+=sideLength;
+	}
 	return list;
 }
 
-template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
-	//find neighbors
-	std::deque<Key<DIM>> neighbors=getNeighbors(key(hash));
-	for(Key<DIM>& k : neighbors){
-		Node<DIM>* n=m_tree->getNode(k);
-		int size=m_tree->getSize(k);
-		//if unsampled, sample
-		if(!n->isSampled()){
-			State<DIM> base,inc,draw;
-			base=m_tree->getState(k-(*(m_tree->getDirections()))[0]*size);
-			inc=m_tree->getState(k+(*(m_tree->getDirections()))[0]*size)-base;
-			int hitCount=0;
-			for(int test=0;test<m_nbDraw;test++){
-				for(int d=0;d<DIM;++d){
-					draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
-				}
-				if(m_isObstacle(draw)){
-					++hitCount;
-				}
+template <unsigned int DIM> void MSP<DIM>::addLeafInDirection(std::deque<Key<DIM>>list,Node<DIM>* n,Key<DIM> k,int d,int dir){
+	std::cout << "finding neigboor rec from " << k << std::endl;
+	if(n->isLeaf()){
+		std::cout<< "found" << std::endl;
+		list.push_back(k);
+	}else{
+		int s=m_tree->getSize(k);
+		for(int i=0;i<TwoPow<DIM>::value;++i){
+			if((*(m_tree->getDirections()))[i][d]==dir){
+				addLeafInDirection(list,n->getChild(i),k+(*(m_tree->getDirections()))[i]*s,d,dir);
 			}
-			n->setValue((double)hitCount / m_nbDraw);
-			n->setSampled(true);
+		}
+	}
+}
+
+template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
+	std::cout << "exploring " << key(hash)<< " with hash " << hash << std::endl;
+	//find neighbors
+	std::deque<Key<DIM>> neighbors=getNeighboors(key(hash));
+	for(Key<DIM>& k : neighbors){
+		std::cout << "neighbor " << k << std::endl;
+		auto it=m_hashToIndices.find(this->hash(k));
+		if(it==m_hashToIndices.end()){
+			continue;
+		}
+		Node<DIM>* n;
+		if(m_mapLearning){
+			n=m_reducedGraphTree.getNode(k);
+			int size=m_tree->getSize(k);
+			//if unsampled, sample
+			if(!n->isSampled()){
+				State<DIM> base,inc,draw;
+				base=m_tree->getState(k-(*(m_tree->getDirections()))[0]*size);
+				inc=m_tree->getState(k+(*(m_tree->getDirections()))[0]*size)-base;
+				int hitCount=0;
+				for(int test=0;test<m_nbDraw;test++){
+					for(int d=0;d<DIM;++d){
+						draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
+					}
+					if(m_isObstacle(draw)){
+						++hitCount;
+					}
+				}
+				n->setValue((double)hitCount / m_nbDraw);
+				n->setSampled(true);
+			}
+		}else{
+			n=m_tree->getNode(k);
 		}
 		//calculate cost//what if epsilon obstacle
 		if(isEpsilonObstacle(n)){
 			continue; // that should be enough
 		}
-		m_costByDepth[hash(k)]=cost(n);
+		m_costByDepth[this->hash(k)]=cost(n);
 
 		//add edges to graph
-		m_graph.add_edge(hash(k),hash,m_costByDepth[hash]);
-		m_graph.add_edge(hash,hash(k),m_costByDepth[hash(k)]);
+		std::cout << "adding edge" <<std::endl;
+		m_graph.add_edge(this->hash(k),hash,m_costByDepth[hash]);
+		m_graph.add_edge(hash,this->hash(k),m_costByDepth[this->hash(k)]);
 	}
 }
 
@@ -341,31 +416,32 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 			nodeReducedTree->clear();
 			int i=nodeReducedTree->getDepth();
 			int j=m_nodesByDepth[i].size();
-
-			if(m_mapLearning){
-				if(!nodeReducedTree->isSampled()){
-					State<DIM> base,inc,draw;
-					base=m_tree->getState(coord-(*(m_tree->getDirections()))[0]*size);
-					inc=m_tree->getState(coord+(*(m_tree->getDirections()))[0]*size)-base;
-					int hitCount=0;
-					for(int test=0;test<m_nbDraw;test++){
-						for(int d=0;d<DIM;++d){
-							draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
+			if(!m_minRGcalc){
+				if(m_mapLearning){
+					if(!nodeReducedTree->isSampled()){
+						State<DIM> base,inc,draw;
+						base=m_tree->getState(coord-(*(m_tree->getDirections()))[0]*size);
+						inc=m_tree->getState(coord+(*(m_tree->getDirections()))[0]*size)-base;
+						int hitCount=0;
+						for(int test=0;test<m_nbDraw;test++){
+							for(int d=0;d<DIM;++d){
+								draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
+							}
+							if(m_isObstacle(draw)){
+								++hitCount;
+							}
 						}
-						if(m_isObstacle(draw)){
-							++hitCount;
-						}
+						nodeReducedTree->setValue((double)hitCount / m_nbDraw);
+						nodeReducedTree->setSampled(true);
 					}
-					nodeReducedTree->setValue((double)hitCount / m_nbDraw);
-					nodeReducedTree->setSampled(true);
+					//what if epsilon obstacle
+					if(isEpsilonObstacle(nodeReducedTree)){
+						return; // that should be enough
+					}
+					m_costByDepth[hash(coord)]=(cost(nodeReducedTree));
+				}else{
+					m_costByDepth[hash(coord)]=(cost(node));
 				}
-				//what if epsilon obstacle
-				if(isEpsilonObstacle(nodeReducedTree)){
-					return; // that should be enough
-				}
-				m_costByDepth[hash(coord)]=(cost(nodeReducedTree));
-			}else{
-				m_costByDepth[hash(coord)]=(cost(node));
 			}
 			m_nodesByDepth[i].push_back(coord);
 			m_hashToIndices.insert(std::pair<long,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
@@ -403,7 +479,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 		}else{
 			if(!node->isLeaf() && !isEpsilonObstacle(node)){
 				for(int i=0;i<TwoPow<DIM>::value;++i){
-					if(m_newNeighboorCheck){
+					if(m_newNeighboorCheck ){
 						add_node_to_reduced_vertices(node->getChild(i),nodeReducedTree->getChild(i),coord+(*(m_tree->getDirections()))[i]*s,size>>1);
 					}else{
 						add_node_to_reduced_vertices(node->getChild(i),nodeReducedTree,coord+(*(m_tree->getDirections()))[i]*s,size>>1);
@@ -418,7 +494,7 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 	m_graph.clear();
 	if(m_newNeighboorCheck){
 		m_nodesByDepth.assign(m_tree->getMaxDepth()+1,std::vector<Key<DIM>>());
-//		m_costByDepth.clear();
+		//		m_costByDepth.clear();
 		m_hashToIndices.clear();
 		//m_reducedGraphTree.clear(); // instead of recreating the tree at each iteration, we remove just the  unnescessary nodes during the reduced graph construction
 	}else{
@@ -435,38 +511,39 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 	add_node_to_reduced_vertices(m_tree->getRoot(),m_reducedGraphTree.getRoot(),m_tree->getRootKey(),m_tree->getRootKey()[0]);
 
 	if(m_newNeighboorCheck){
-		//graph insertion and start end finding in node selection
-		//neighboor finding
-		Key<DIM> k;
-		Key<DIM> kInTree;
-		int maxVal=1<<(m_tree->getMaxDepth()+1);
-		for(int i=m_tree->getMaxDepth();i>=0;i--){
-			int sideLength=m_tree->getSize(i)*2;
-			for(int j=0;j<m_nodesByDepth[i].size();++j){
-				k=m_nodesByDepth[i][j];
-				for(int d=0;d<DIM;++d){
-					k[d]+=sideLength;
-					//test positif neighboor
-					if(k[d]<maxVal){
-						m_reducedGraphTree.getKey(k,kInTree,true);
-						auto it=m_hashToIndices.find(hash(kInTree));
-						if(it!=m_hashToIndices.end()){
-							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
-							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
+		if(!m_minRGcalc){
+			//neighboor finding
+			Key<DIM> k;
+			Key<DIM> kInTree;
+			int maxVal=1<<(m_tree->getMaxDepth()+1);
+			for(int i=m_tree->getMaxDepth();i>=0;i--){
+				int sideLength=m_tree->getSize(i)*2;
+				for(int j=0;j<m_nodesByDepth[i].size();++j){
+					k=m_nodesByDepth[i][j];
+					for(int d=0;d<DIM;++d){
+						k[d]+=sideLength;
+						//test positif neighboor
+						if(k[d]<maxVal){
+							m_reducedGraphTree.getKey(k,kInTree,true);
+							auto it=m_hashToIndices.find(hash(kInTree));
+							if(it!=m_hashToIndices.end()){
+								m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
+								m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
+							}
 						}
-					}
-					k[d]-=2*sideLength;
-					//test negative neighboor
-					if(k[d]>0){
-						m_reducedGraphTree.getKey(k,kInTree,true);
-						auto it=m_hashToIndices.find(hash(kInTree));
-						if(it!=m_hashToIndices.end()){
-							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
-							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
+						k[d]-=2*sideLength;
+						//test negative neighboor
+						if(k[d]>0){
+							m_reducedGraphTree.getKey(k,kInTree,true);
+							auto it=m_hashToIndices.find(hash(kInTree));
+							if(it!=m_hashToIndices.end()){
+								m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
+								m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
+							}
 						}
+						//set k back to its original value for next iteration
+						k[d]+=sideLength;
 					}
-					//set k back to its original value for next iteration
-					k[d]+=sideLength;
 				}
 			}
 		}
@@ -581,7 +658,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 			}
 		}
 	}
-	bool latex=false;
+	bool latex=true;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
