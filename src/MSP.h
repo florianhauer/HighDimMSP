@@ -33,7 +33,7 @@ public:
 	bool isEpsilonObstacle(Node<DIM>* n);
 
 protected:
-	void addLeafInDirection(std::deque<Key<DIM>>list,Node<DIM>* n,Key<DIM> kInTree,int d,int dir);
+	void addLeafInDirection(std::deque<Key<DIM>>& list,Node<DIM>* n,Key<DIM> kInTree,int d,int dir);
 	void iterationDetails(astar::BasePath* result=NULL);
 	void drawTree(std::ostream& stream);
 	void drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size);

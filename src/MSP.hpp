@@ -338,13 +338,13 @@ template <unsigned int DIM> std::deque<Key<DIM>> MSP<DIM>::getNeighboors(Key<DIM
 	return list;
 }
 
-template <unsigned int DIM> void MSP<DIM>::addLeafInDirection(std::deque<Key<DIM>>list,Node<DIM>* n,Key<DIM> k,int d,int dir){
-	std::cout << "finding neigboor rec from " << k << std::endl;
+template <unsigned int DIM> void MSP<DIM>::addLeafInDirection(std::deque<Key<DIM>>& list,Node<DIM>* n,Key<DIM> k,int d,int dir){
+//	std::cout << "finding neigboor rec from " << k << std::endl;
 	if(n->isLeaf()){
-		std::cout<< "found" << std::endl;
+//		std::cout<< "found" << std::endl;
 		list.push_back(k);
 	}else{
-		int s=m_tree->getSize(k);
+		int s=m_tree->getSize(k)/2;
 		for(int i=0;i<TwoPow<DIM>::value;++i){
 			if((*(m_tree->getDirections()))[i][d]==dir){
 				addLeafInDirection(list,n->getChild(i),k+(*(m_tree->getDirections()))[i]*s,d,dir);
@@ -354,12 +354,18 @@ template <unsigned int DIM> void MSP<DIM>::addLeafInDirection(std::deque<Key<DIM
 }
 
 template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
-	std::cout << "exploring " << key(hash)<< " with hash " << hash << std::endl;
+//	std::cout << "exploring " << key(hash)<< " with hash " << hash << std::endl;
 	//find neighbors
 	std::deque<Key<DIM>> neighbors=getNeighboors(key(hash));
 	for(Key<DIM>& k : neighbors){
-		std::cout << "neighbor " << k << std::endl;
+//		std::cout << "neighbor " << k << std::endl;
 		auto it=m_hashToIndices.find(this->hash(k));
+		auto it2=m_costByDepth.find(this->hash(k));
+		if(it2!=m_costByDepth.end()){
+			m_graph.add_edge(this->hash(k),hash,m_costByDepth[hash]);
+			m_graph.add_edge(hash,this->hash(k),m_costByDepth[this->hash(k)]);
+			continue;
+		}
 		if(it==m_hashToIndices.end()){
 			continue;
 		}
@@ -394,7 +400,7 @@ template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
 		m_costByDepth[this->hash(k)]=cost(n);
 
 		//add edges to graph
-		std::cout << "adding edge" <<std::endl;
+//		std::cout << "adding edge" <<std::endl;
 		m_graph.add_edge(this->hash(k),hash,m_costByDepth[hash]);
 		m_graph.add_edge(hash,this->hash(k),m_costByDepth[this->hash(k)]);
 	}
@@ -454,6 +460,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 					return;
 				}
 				m_start_index=hash(coord);
+				m_costByDepth[m_start_index]=0;
 			}
 			if(is_goal(pair)){
 				if(m_end_index!=-1){
@@ -494,7 +501,7 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 	m_graph.clear();
 	if(m_newNeighboorCheck){
 		m_nodesByDepth.assign(m_tree->getMaxDepth()+1,std::vector<Key<DIM>>());
-		//		m_costByDepth.clear();
+		m_costByDepth.clear();
 		m_hashToIndices.clear();
 		//m_reducedGraphTree.clear(); // instead of recreating the tree at each iteration, we remove just the  unnescessary nodes during the reduced graph construction
 	}else{
