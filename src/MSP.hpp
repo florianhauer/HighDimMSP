@@ -77,7 +77,7 @@ template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end)
 	m_path_cost.clear();
 	m_current_path.push_back(m_start_coord);
 	m_misleading.clear();
-	m_misleading[m_current_coord]=std::set<Key<DIM>>();
+	m_misleading[hash(m_current_coord)]=std::unordered_set<long>();
 	m_nb_step=0;
 	m_nb_backtrack=0;
 	if(m_mapLearning){
@@ -115,9 +115,9 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 		//do stuff to prepare next iteration
 		if(m_newNeighboorCheck){
 			auto it=m_hashToIndices.find(next_point_id);
-			m_misleading[m_current_coord].insert(m_nodesByDepth[it->second.first][it->second.second]);
+			m_misleading[hash(m_current_coord)].insert(hash(m_nodesByDepth[it->second.first][it->second.second]));
 			m_current_path.push_back(m_nodesByDepth[it->second.first][it->second.second]);
-			m_path_cost.push_back(m_costByDepth[it->second.first][it->second.second]);
+			m_path_cost.push_back(m_costByDepth[next_point_id]);
 
 			if(m_speed_up){
 				int mv_fwd=2;
@@ -126,9 +126,9 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 					auto it2=m_hashToIndices.find(next_point_id2);
 					if((!m_mapLearning && m_tree->getNode(m_nodesByDepth[it2->second.first][it2->second.second])->isLeaf())
 							|| (m_mapLearning && it2->second.first==m_tree->getMaxDepth())){
-						m_misleading[m_nodesByDepth[it->second.first][it->second.second]].insert(m_nodesByDepth[it2->second.first][it2->second.second]);
+						m_misleading[hash(m_nodesByDepth[it->second.first][it->second.second])].insert(hash(m_nodesByDepth[it2->second.first][it2->second.second]));
 						m_current_path.push_back(m_nodesByDepth[it2->second.first][it2->second.second]);
-						m_path_cost.push_back(m_costByDepth[it2->second.first][it2->second.second]);
+						m_path_cost.push_back(m_costByDepth[next_point_id2]);
 						next_point_id=next_point_id2;
 						it=it2;
 						++mv_fwd;
@@ -145,7 +145,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 			m_current_size=m_tree->getSize(it->second.first);
 
 		}else{
-			m_misleading[m_current_coord].insert(m_nodes[next_point_id].first);
+			m_misleading[hash(m_current_coord)].insert(hash(m_nodes[next_point_id].first));
 			m_current_path.push_back(m_nodes[next_point_id].first);
 			m_path_cost.push_back(m_cost[next_point_id]);
 
@@ -154,7 +154,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 				while(result->length()>mv_fwd){
 					int next_point_id2=result->GetVertex(mv_fwd)->getID();
 					if(m_tree->getNode(m_nodes[next_point_id2].first)->isLeaf()){
-						m_misleading[m_nodes[next_point_id].first].insert(m_nodes[next_point_id2].first);
+						m_misleading[hash(m_nodes[next_point_id].first)].insert(hash(m_nodes[next_point_id2].first));
 						m_current_path.push_back(m_nodes[next_point_id2].first);
 						m_path_cost.push_back(m_cost[next_point_id2]);
 						next_point_id=next_point_id2;
@@ -182,7 +182,7 @@ template <unsigned int DIM> bool MSP<DIM>::step(){
 	}else{
 		delete result;
 		iterationDetails();
-		m_misleading[m_current_coord].clear();
+		m_misleading[hash(m_current_coord)].clear();
 		m_nb_backtrack++;
 		m_current_path.pop_back();
 		if(m_current_path.size()==0){
@@ -284,14 +284,45 @@ template <unsigned int DIM> Key<DIM> MSP<DIM>::key(long hash){
 	return k;
 }
 
+template <unsigned int DIM> std::deque<Key<DIM>> MSP<DIM>::getNeighboors(Key<DIM> k){
+	std::deque<Key<DIM>> list;
+
+	return list;
+}
+
 template <unsigned int DIM> void MSP<DIM>::exploreVertex(long hash){
 	//find neighbors
+	std::deque<Key<DIM>> neighbors=getNeighbors(key(hash));
+	for(Key<DIM>& k : neighbors){
+		Node<DIM>* n=m_tree->getNode(k);
+		int size=m_tree->getSize(k);
+		//if unsampled, sample
+		if(!n->isSampled()){
+			State<DIM> base,inc,draw;
+			base=m_tree->getState(k-(*(m_tree->getDirections()))[0]*size);
+			inc=m_tree->getState(k+(*(m_tree->getDirections()))[0]*size)-base;
+			int hitCount=0;
+			for(int test=0;test<m_nbDraw;test++){
+				for(int d=0;d<DIM;++d){
+					draw[d]=base[d]+inc[d]*((double) rand() / (RAND_MAX));
+				}
+				if(m_isObstacle(draw)){
+					++hitCount;
+				}
+			}
+			n->setValue((double)hitCount / m_nbDraw);
+			n->setSampled(true);
+		}
+		//calculate cost//what if epsilon obstacle
+		if(isEpsilonObstacle(n)){
+			continue; // that should be enough
+		}
+		m_costByDepth[hash(k)]=cost(n);
 
-	//if unsampled, sample
-
-	//calculate cost
-
-	//add edges to graph
+		//add edges to graph
+		m_graph.add_edge(hash(k),hash,m_costByDepth[hash]);
+		m_graph.add_edge(hash,hash(k),m_costByDepth[hash(k)]);
+	}
 }
 
 template <unsigned int DIM> bool MSP<DIM>::inPath(Key<DIM> pt,int size){
@@ -304,7 +335,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 	if( ( ((coord-m_current_coord).normSq()>(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)*(m_alpha*(size<<1)+sqrt(DIM)*m_current_size)) || (!m_mapLearning && node->isLeaf()) || m_tree->getSize(coord)==1)
 			&& !inPath(coord,size)
 			&& (m_mapLearning || !isEpsilonObstacle(node))
-			&& m_current_forbidden.find(coord)==m_current_forbidden.end()
+			&& m_current_forbidden.find(hash(coord))==m_current_forbidden.end()
 	){
 		if(m_newNeighboorCheck){
 			nodeReducedTree->clear();
@@ -332,9 +363,9 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 				if(isEpsilonObstacle(nodeReducedTree)){
 					return; // that should be enough
 				}
-				m_costByDepth[i].push_back(cost(nodeReducedTree));
+				m_costByDepth[hash(coord)]=(cost(nodeReducedTree));
 			}else{
-				m_costByDepth[i].push_back(cost(node));
+				m_costByDepth[hash(coord)]=(cost(node));
 			}
 			m_nodesByDepth[i].push_back(coord);
 			m_hashToIndices.insert(std::pair<long,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
@@ -387,7 +418,7 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 	m_graph.clear();
 	if(m_newNeighboorCheck){
 		m_nodesByDepth.assign(m_tree->getMaxDepth()+1,std::vector<Key<DIM>>());
-		m_costByDepth.assign(m_tree->getMaxDepth()+1,std::vector<double>());
+//		m_costByDepth.clear();
 		m_hashToIndices.clear();
 		//m_reducedGraphTree.clear(); // instead of recreating the tree at each iteration, we remove just the  unnescessary nodes during the reduced graph construction
 	}else{
@@ -397,9 +428,9 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 	m_start_index=-1;
 	m_end_index=-1;
 	try {
-		m_current_forbidden=m_misleading.at(m_current_coord);
+		m_current_forbidden=m_misleading.at(hash(m_current_coord));
 	}catch (const std::out_of_range& oor) {
-		m_current_forbidden=std::set<Key<DIM>>();
+		m_current_forbidden=std::unordered_set<long>();
 	}
 	add_node_to_reduced_vertices(m_tree->getRoot(),m_reducedGraphTree.getRoot(),m_tree->getRootKey(),m_tree->getRootKey()[0]);
 
@@ -420,8 +451,8 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 						m_reducedGraphTree.getKey(k,kInTree,true);
 						auto it=m_hashToIndices.find(hash(kInTree));
 						if(it!=m_hashToIndices.end()){
-							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[it->second.first][it->second.second]);
-							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[i][j]);
+							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
+							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
 						}
 					}
 					k[d]-=2*sideLength;
@@ -430,8 +461,8 @@ template <unsigned int DIM> void MSP<DIM>::reducedGraph(){
 						m_reducedGraphTree.getKey(k,kInTree,true);
 						auto it=m_hashToIndices.find(hash(kInTree));
 						if(it!=m_hashToIndices.end()){
-							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[it->second.first][it->second.second]);
-							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[i][j]);
+							m_graph.add_edge(hash(m_nodesByDepth[i][j]),it->first,m_costByDepth[hash(it->first)]);
+							m_graph.add_edge(it->first,hash(m_nodesByDepth[i][j]),m_costByDepth[hash(m_nodesByDepth[i][j])]);
 						}
 					}
 					//set k back to its original value for next iteration
@@ -522,7 +553,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
 				std::cout << "depth " << i << std::endl;
 				for(int j=0;j<m_nodesByDepth[i].size();++j){
-					std::cout << "Vertex " << hash(m_nodesByDepth[i][j]) << " at " << m_nodesByDepth[i][j] << " and cost " << m_costByDepth[i][j] << ", neighbor with ";
+					std::cout << "Vertex " << hash(m_nodesByDepth[i][j]) << " at " << m_nodesByDepth[i][j] << " and cost " << m_costByDepth[hash(m_nodesByDepth[i][j])] << ", neighbor with ";
 					std::unordered_set<astar::BaseVertex*> vertex_set;
 					m_graph.get_adjacent_vertices(m_graph.get_vertex(hash(m_nodesByDepth[i][j])),vertex_set);
 					for(auto it:vertex_set){

@@ -3,8 +3,8 @@
 #define MSP_H_
 
 #include <deque>
-#include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <utility>
 #include <string>
@@ -44,6 +44,7 @@ protected:
 	bool is_in(Key<DIM>& pt,std::pair<Key<DIM>,int> node);
 	double cost(Node<DIM>* n);
 	void add_node_to_reduced_vertices(Node<DIM>* node,Node<DIM>* nodeReducedTree,Key<DIM> key, int size);
+	std::deque<Key<DIM>> getNeighboors(Key<DIM> k);
 	Key<DIM> m_start_coord;
 	Key<DIM> m_end_coord;
 	Key<DIM> m_current_coord;
@@ -56,8 +57,8 @@ protected:
 	bool m_path_found;
 	std::deque<Key<DIM>> m_current_path;
 	astar::Graph m_graph;
-	std::map<Key<DIM>,std::set<Key<DIM>>> m_misleading;
-	std::set<Key<DIM>> m_current_forbidden;
+	std::unordered_map<long,std::unordered_set<long>> m_misleading;
+	std::unordered_set<long> m_current_forbidden;
 	double m_alpha;//used in reduced graph as parameter for decomposition
 	std::vector<std::pair<Key<DIM>,int> > m_nodes; //coord,size
 	std::vector<double> m_cost;
@@ -69,8 +70,9 @@ protected:
 	int m_nb_step;
 
 	std::vector<std::vector<Key<DIM>>> m_nodesByDepth;
-	std::vector<std::vector<double>> m_costByDepth;
-	std::map<long, std::pair<int,int>> m_hashToIndices;
+//	std::vector<std::vector<double>> m_costByDepth;
+	std::unordered_map<long,double> m_costByDepth;
+	std::unordered_map<long, std::pair<int,int>> m_hashToIndices;
 	long hash(Key<DIM> k);
 	Key<DIM> key(long hash);
 	bool m_newNeighboorCheck;
