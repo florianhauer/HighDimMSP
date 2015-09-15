@@ -665,7 +665,7 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 			}
 		}
 	}
-	bool latex=true;
+	bool latex=false;
 	if(latex && DIM==2){
 		if(m_nb_step==0){
 			//remove previous results
