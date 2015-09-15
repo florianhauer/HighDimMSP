@@ -18,7 +18,7 @@ public:
 	MSP(Tree<DIM>* tree);
 	~MSP();
 	void clear();
-	bool init(State<DIM> start,State<DIM> end);
+	bool init(const State<DIM> start,const State<DIM> end);
 	bool step();
 	bool run();
 	std::deque<State<DIM>> getPath();

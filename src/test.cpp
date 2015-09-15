@@ -7,12 +7,38 @@
 #include <stdio.h>      /* printf, scanf, puts, NULL */
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
+#include <chrono>   // std::chrono::seconds, milliseconds
+#include <thread>   // std::this_thread::sleep_for
+
+
+Tree<2>* t2=new Tree<2>();
+Tree<3>* t3=new Tree<3>();
+Tree<4>* t4=new Tree<4>();
+Tree<5>* t5=new Tree<5>();
+void delay(){
+    std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+}
 
 template <unsigned int DIM> bool isObstacle(State<DIM> s){
+	delay();
 	if(rand()%100<10)
 		return true;
 	else
 		return false;
+}
+
+template <unsigned int DIM> bool isObstacle1(State<DIM> s){
+	delay();
+	Tree<DIM>* t;
+	switch(DIM){
+	case 2: t=(Tree<DIM>*)t2; break;
+	case 3: t=(Tree<DIM>*)t3; break;
+	case 4: t=(Tree<DIM>*)t4; break;
+	case 5: t=(Tree<DIM>*)t5; break;
+	}
+	Key<DIM> k;
+	t->getKey(s,k,true);
+	return (t->getNode(k)->getValue()==1.0f);
 }
 
 template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, Tree<DIM>* t,std::vector<Key<DIM>>& vertices){
@@ -56,13 +82,21 @@ template <unsigned int DIM, unsigned int DEPTH> int hashKey(Key<DIM> k){
 	return hash;
 }
 
-template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
+template<unsigned int DIM, unsigned int DEPTH> State<6> createMapRunMSPRunAs(){
 	bool success=false;
-	srand (time(NULL));
-	State<3> result(0.0);
 	while(!success){
+		srand (time(NULL));
+		State<6> result(0.0);
+		t2->clear();t3->clear();t4->clear();t5->clear();
 		//Create Tree
-		Tree<DIM>* t=new Tree<DIM>();
+		Tree<DIM>* t;
+		switch(DIM){
+		case 2: t=(Tree<DIM>*)t2; break;
+		case 3: t=(Tree<DIM>*)t3; break;
+		case 4: t=(Tree<DIM>*)t4; break;
+		case 5: t=(Tree<DIM>*)t5; break;
+		}
+
 		//Set Search Space Bounds
 		State<DIM> minState(-1.0);
 		State<DIM> maxState(1.0);
@@ -71,141 +105,207 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 		t->setMaxDepth(DEPTH);
 		//Depth First Obstacle Creation
 		std::vector<Key<DIM>> vertices;
+		auto start_wall_clock = std::chrono::steady_clock::now();
 		addObstacles(t->getRootKey(),0,t->getRootKey()[0],t,vertices);
+		auto finish_wall_clock = std::chrono::steady_clock::now();
+		result[0]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
+
+		bool init;
+		State<DIM> start(-1+0.00001);
+		State<DIM> goal ( 1-0.00001);
 
 		//Create algo
 		MSP<DIM> algo(t);
+		algo.setSpeedUp(true);
+		algo.setNewNeighboorCheck(false);
+		algo.setMapLearning(false,0,0);
+		algo.setMinRGcalc(false);
 		//Set algo parameters
-		State<DIM> start(-1+0.00001);
-		State<DIM> goal ( 1-0.00001);
-		bool init=algo.init(start,goal);
+		init=algo.init(start,goal);
 		//Run algo
-		clock_t tc = clock();
+		start_wall_clock = std::chrono::steady_clock::now();
 		if(init && algo.run()){
-			tc = clock() - tc;
-			success=true;
-			result[0]=((double)tc)/CLOCKS_PER_SEC;
+			finish_wall_clock = std::chrono::steady_clock::now();
+			result[2]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
 			algo.clear();
-			//printf ("It took me %d clicks (%f seconds).\n",tc,((double)tc)/CLOCKS_PER_SEC);
-			//std::cout << "solution found" <<std::endl;
-			//run mspp with the new neighboor check
-			MSP<DIM> algo2(t);
-			init=algo2.init(start,goal);
-			algo2.setNewNeighboorCheck(true);
-			tc = clock();
-			if(init && algo2.run()){
-				tc = clock() - tc;
-				success=true;
-				result[1]=((double)tc)/CLOCKS_PER_SEC;
-				algo2.clear();
-				MSP<DIM> algo3(t);
-				init=algo3.init(start,goal);
-				algo3.setMinRGcalc(true);
-				tc = clock();
-				if(init && algo3.run()){
-					tc = clock() - tc;
-					success=true;
-					result[2]=((double)tc)/CLOCKS_PER_SEC;
-					algo3.clear();
-					return result;
-				}
+		}else{
+			continue;
+		}
+
+		//Create algo
+		MSP<DIM> algo2(t);
+		algo2.setSpeedUp(true);
+		algo2.setNewNeighboorCheck(true);
+		algo2.setMapLearning(false,0,0);
+		algo2.setMinRGcalc(false);
+		//Set algo parameters
+		init=algo2.init(start,goal);
+		//Run algo
+		start_wall_clock = std::chrono::steady_clock::now();
+		if(init && algo2.run()){
+			finish_wall_clock = std::chrono::steady_clock::now();
+			result[3]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
+			algo2.clear();
+		}else{
+			continue;
+		}
+
+		//Create algo
+		MSP<DIM> algo3(t);
+		algo3.setSpeedUp(true);
+		algo3.setNewNeighboorCheck(true);
+		algo3.setMapLearning(true,10,&isObstacle1);
+		algo3.setMinRGcalc(false);
+		//Set algo parameters
+		init=algo3.init(start,goal);
+		//Run algo
+		start_wall_clock = std::chrono::steady_clock::now();
+		if(init && algo3.run()){
+			finish_wall_clock = std::chrono::steady_clock::now();
+			result[4]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
+			algo3.clear();
+		}else{
+			continue;
+		}
+
+		//Create algo
+		MSP<DIM> algo4(t);
+		algo4.setSpeedUp(true);
+		algo4.setNewNeighboorCheck(true);
+		algo4.setMapLearning(true,10,&isObstacle1);
+		algo4.setMinRGcalc(true);
+		//Set algo parameters
+		init=algo4.init(start,goal);
+		//Run algo
+		start_wall_clock = std::chrono::steady_clock::now();
+		if(init && algo4.run()){
+			finish_wall_clock = std::chrono::steady_clock::now();
+			result[5]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
+			algo4.clear();
+		}else{
+			continue;
+		}
+
+		//*
+		//run A start on the same problem
+		Key<DIM> ks(1);
+		Key<DIM> kg=t->getRootKey()*2-ks;
+		t->clear();
+		int is=-1,ig=-1;
+		astar::Graph graph;
+		for(int i=0;i<vertices.size();++i){
+			graph.add_vertex(hashKey<DIM,DEPTH>(vertices[i]),(vertices[i]-kg).norm());
+			if((vertices[i]-ks).norm()==0){
+				is=hashKey<DIM,DEPTH>(vertices[i]);
 			}
-			/*
-			//run A start on the same problem
-			Key<DIM> ks(1);
-			Key<DIM> kg=t->getRootKey()*2-ks;
-			delete t;
-			int is=-1,ig=-1;
-			astar::Graph graph;
-			for(int i=0;i<vertices.size();++i){
-				graph.add_vertex(hashKey<DIM,DEPTH>(vertices[i]),(vertices[i]-kg).norm());
-				if((vertices[i]-ks).norm()==0){
-					is=hashKey<DIM,DEPTH>(vertices[i]);
-				}
-				if((vertices[i]-kg).norm()==0){
-					ig=hashKey<DIM,DEPTH>(vertices[i]);
-				}
+			if((vertices[i]-kg).norm()==0){
+				ig=hashKey<DIM,DEPTH>(vertices[i]);
 			}
-			int maxValKey=1<<(DEPTH+1);
-			for(int i=0;i<vertices.size();++i){
-				for(int j=0;j<DIM;++j){
-					Key<DIM> k(vertices[i]);
-					k[j]+=2;
-					if(k[j]<maxValKey){
-						if(graph.get_vertex(hashKey<DIM,DEPTH>(k))!=NULL){
-							graph.add_edge(hashKey<DIM,DEPTH>(vertices[i]),hashKey<DIM,DEPTH>(k),2);
-							graph.add_edge(hashKey<DIM,DEPTH>(k),hashKey<DIM,DEPTH>(vertices[i]),2);
-						}
+		}
+		int maxValKey=1<<(DEPTH+1);
+		for(int i=0;i<vertices.size();++i){
+			for(int j=0;j<DIM;++j){
+				Key<DIM> k(vertices[i]);
+				k[j]+=2;
+				if(k[j]<maxValKey){
+					if(graph.get_vertex(hashKey<DIM,DEPTH>(k))!=NULL){
+						graph.add_edge(hashKey<DIM,DEPTH>(vertices[i]),hashKey<DIM,DEPTH>(k),2);
+						graph.add_edge(hashKey<DIM,DEPTH>(k),hashKey<DIM,DEPTH>(vertices[i]),2);
 					}
 				}
 			}
-			vertices.clear();
-			if(is==-1 || ig==-1){
-				std::cout << "PROBLEM" << std::endl;
-				exit(1);
-			}
-			tc = clock();
-			astar::YenTopKShortestPathsAlg yenAlg(graph, graph.get_vertex(is),graph.get_vertex(ig));
-			if(yenAlg.has_next()){
-				astar::BasePath* r =yenAlg.next();
-				tc = clock() - tc;
-				success=true;
-				result[2]=((double)tc)/CLOCKS_PER_SEC;
-				return result;
-			}//*/
-		}else{
-			//std::cout << "no solution found" <<std::endl;
-			srand (time(NULL)+rand());
 		}
+		vertices.clear();
+		if(is==-1 || ig==-1){
+			std::cout << "PROBLEM" << std::endl;
+			exit(1);
+		}
+		start_wall_clock = std::chrono::steady_clock::now();
+		//astar::YenTopKShortestPathsAlg yenAlg(graph, graph.get_vertex(is),graph.get_vertex(ig));
+		astar::Astar sp;
+		sp=astar::Astar(&graph);
+		astar::BasePath* r=sp.get_shortest_path(graph.get_vertex(is),graph.get_vertex(ig));
+		if(r->Weight()!=astar::Graph::DISCONNECT){
+			finish_wall_clock = std::chrono::steady_clock::now();
+			result[1]=(finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1);
+			graph.clear();
+			t->clear();
+			return result;
+		}else{
+			continue;
+		}//*/
 	}
 }
 
 int main( int argc, const char* argv[] )
 {
+	/*auto start_wall_clock = std::chrono::steady_clock::now();
+	clock_t t=clock();
+	for(int i=0;i<1000;++i){
+		int milisec = 10; // length of time to sleep, in miliseconds
+		struct timespec req = {0};
+		req.tv_sec = 0;
+		req.tv_nsec = milisec * 1000000L;
+		if(nanosleep(&req, (struct timespec *)NULL)==-1){
+			std::cout << "error" <<std::endl;
+		}
+	}
+	t=clock()-t;
+	auto finish_wall_clock = std::chrono::steady_clock::now();
+	std::cout << "1s = " << ((double)t)/CLOCKS_PER_SEC << std::endl;
+    std::cout << "Wall clock: " << (finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1) << '\n';*/
+
 	int nb_sim=10;
 
-	State<3> results(0);
+	std::cout << "map creation , a star , mspp , mspp fast neighbor , mspp sampling , mspp sampling min rg" << std::endl;
+
+	State<6> results(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<2,4>();
 	}
-	std::cout << std::endl << "results 2,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim << std::endl;
-//	std::cout << "Time reduced by " << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
+	std::cout << std::endl << "results 2,4 : ";
+	for(int i=0;i<6;++i){
+		std::cout << results[i]/nb_sim/1000000000.0 << " , ";
+	}
+	std::cout << std::endl;
 
-	results=State<3>(0);
+	results=State<6>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<3,4>();
 	}
-	std::cout << std::endl << "results 3,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
-//	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
+	std::cout << std::endl << "results 3,4 : ";
+	for(int i=0;i<6;++i){
+		std::cout << results[i]/nb_sim/1000000000.0 << " , ";
+	}
+	std::cout << std::endl;
 
-	results=State<3>(0);
+	results=State<6>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<4,4>();
 	}
-	std::cout << std::endl << "results 4,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
-//	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
+	std::cout << std::endl << "results 4,4 : ";
+	for(int i=0;i<6;++i){
+		std::cout << results[i]/nb_sim/1000000000.0 << " , ";
+	}
+	std::cout << std::endl;
 
+	//*
 	nb_sim=2;
-	results=State<3>(0);
+	results=State<6>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
 		results=results+createMapRunMSPRunAs<5,4>();
 	}
-	std::cout << std::endl << "results 5,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
-//	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
-
-	/*
-	results=State<3>(0);
-	for(int i=0;i<nb_sim;++i){
-		std::cout << i << " , " << std::flush;
-		results=results+createMapRunMSPRunAs<6,4>();
+	std::cout << std::endl << "results 5,4 : " ;
+	for(int i=0;i<6;++i){
+		std::cout << results[i]/nb_sim/1000000000.0 << " , ";
 	}
-	std::cout << std::endl << "results 6,4 : " << results[0]/nb_sim << " , " << results[1]/nb_sim << " , " << results[2]/nb_sim  << std::endl;
-	std::cout << "Time reduced by "  << (results[1]-results[0])/results[1]*100.0 << "%" << std::endl;
-	*/
+	std::cout << std::endl;
+	//*/
+
 
 	std::cout << "no crash" << std::endl;
 }

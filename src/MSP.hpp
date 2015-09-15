@@ -63,7 +63,7 @@ template <unsigned int DIM> void MSP<DIM>::clear(){
 }
 
 
-template <unsigned int DIM> bool MSP<DIM>::init(State<DIM> start,State<DIM> end){
+template <unsigned int DIM> bool MSP<DIM>::init(const State<DIM> start,const State<DIM> end){
 	Key<DIM> startKey;
 	Key<DIM> goalKey;
 	if(!(m_tree->getKey(start,startKey,!m_mapLearning) && m_tree->getKey(end,goalKey,!m_mapLearning))){
