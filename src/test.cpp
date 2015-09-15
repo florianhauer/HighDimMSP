@@ -255,7 +255,7 @@ int main( int argc, const char* argv[] )
 	std::cout << "1s = " << ((double)t)/CLOCKS_PER_SEC << std::endl;
     std::cout << "Wall clock: " << (finish_wall_clock - start_wall_clock) / std::chrono::nanoseconds(1) << '\n';*/
 
-	int nb_sim=10;
+	int nb_sim=20;
 
 	std::cout << "map creation , a star , mspp , mspp fast neighbor , mspp sampling , mspp sampling min rg" << std::endl;
 
@@ -293,7 +293,7 @@ int main( int argc, const char* argv[] )
 	std::cout << std::endl;
 
 	//*
-	nb_sim=2;
+	nb_sim=5;
 	results=State<6>(0);
 	for(int i=0;i<nb_sim;++i){
 		std::cout << i << " , " << std::flush;
