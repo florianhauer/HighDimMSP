@@ -31,6 +31,7 @@ public:
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);
 	bool isEpsilonObstacle(Node<DIM>* n);
+	void setLambda1(double l){m_lambda1=l;m_lambda2=1-l;}
 
 protected:
 	void addLeafInDirection(std::deque<Key<DIM>>& list,Node<DIM>* n,Key<DIM> kInTree,int d,int dir);
