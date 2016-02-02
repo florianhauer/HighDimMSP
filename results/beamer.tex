@@ -13,25 +13,49 @@
 
 \usetikzlibrary{calc,arrows,positioning,decorations.markings}
 
+\newcommand{\losange}[4][]{
+	%\draw[#1] ($#2+(-#3,0)$) -- ($#2+(0,-#3)$) -- ($#2+(#3,0)$) -- ($#2+(0,#3)$) -- ($#2+(-#3,0))$;
+	\draw[#1] ($#2-(#3,0)$) -- ($#2+(0,#4)$) -- ($#2+(#3,0)$) -- ($#2-(0,#4)$) -- ($#2-(#3,0)$);
+}
 
-\newcommand{\picScale}{0.14}
+\newcommand{\tree}[6][]{% #2=root, ,#3=width , #4=height, #5=layer height, #6=depth
+   \ifthenelse{\numexpr#6\relax>0}{% 
+     \tree[#1]{($#2+(0,#5)+0.5*(0,#4)$)}{#3*0.5}{#4*0.5}{#5}{#6-1}% 
+     \tree[#1]{($#2+(0,#5)+0.5*(-#3,0)$)}{#3*0.5}{#4*0.5}{#5}{#6-1}% 
+     \tree[#1]{($#2+(0,#5)+0.5*(#3,0)$)}{#3*0.5}{#4*0.5}{#5}{#6-1}% 
+     \tree[#1]{($#2+(0,#5)+0.5*(0,-#4)$)}{#3*0.5}{#4*0.5}{#5}{#6-1}%
+  	 \draw ($#2+(0,#5)+0.5*(0,#4)$) -- ($#2$) -- ($#2+(0,#5)+0.5*(0,-#4)$);%
+  	 \draw ($#2+(0,#5)+0.5*(#3,0)$) -- ($#2$) -- ($#2+(0,#5)+0.5*(-#3,0)$);%
+   }{}% 
+   \losange[#1]{#2}{#3}{#4}% 
+} 
 
+\newcommand{\picScale}{0.16}
+\usepackage[controls]{animate}
 
 \begin{document}
-
-\newcounter{iteration_number}
-\forloop{iteration_number}{0}{\value{iteration_number} < 100}{
-	\IfFileExists{./iterationFiles/iteration\arabic{iteration_number}.tex}{
 	
 \begin{frame}
-\transduration{2.0}
-\begin{center}
+%%\transduration{0.25}
+%\begin{columns}
+%\begin{column}{8cm}
+%Main content
+%\end{column}
+%\begin{column}{2cm}
+\begin{animateinline}[loop,autoplay,buttonsize=0.25cm]{3}%
+\newcounter{iteration_number}%
+\forloop{iteration_number}{0}{\value{iteration_number} < 100}{%
+	\IfFileExists{./iterationFiles/iteration\arabic{iteration_number}.tex}{%
 \input{./iterationFiles/environment.tex}
 \input{./iterationFiles/iteration\arabic{iteration_number}.tex}
-\end{center}
-\end{frame}
-
+\newframe
 	}{ \setcounter{iteration_number}{10000} }
 }
+\end{animateinline}
+%\end{center}
+%\end{column}
+%\end{columns}
+\end{frame}
+
 
 \end{document}

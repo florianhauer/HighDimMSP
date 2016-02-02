@@ -7,7 +7,7 @@
 #include <ctime>
 
 template <unsigned int DIM> bool isObstacle(State<DIM> s){
-	if(s.norm()<0.2)
+	if(rand()*1.0/RAND_MAX<0.05)
 		return true;
 	else
 		return false;
@@ -46,6 +46,7 @@ template <unsigned int DIM> bool addObstacles(Key<DIM> k, int depth, int size, T
 
 int main( int argc, const char* argv[] )
 {
+	srand(time(NULL));
 	//Create Tree
 	Tree<2>* t=new Tree<2>();
 	//Set Search Space Bounds
@@ -53,19 +54,24 @@ int main( int argc, const char* argv[] )
 	State<2> maxState={1,1};
 	t->setStateBounds(minState,maxState);
 	//Set Tree Max Depth
-	int depth=4;
+	int depth=7;
 	t->setMaxDepth(depth);
 	//Depth First Obstacle Creation
-//	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
-	State<2> sO={0.0625,0.0625};
-	State<2> sI={0, 0.125};
-	for(float i=-8;i<8;++i){
-		if(i!=0){
-			State<2> s=sO+sI*i;
-			t->addObstacle(s);
-		}
-	}
-	t->updateRec();
+	addObstacles(t->getRootKey(),0,t->getRootKey()[0],t);
+//	State<2> sO={1/64.0,1/64.0};
+//	State<2> sI={0, 1/32.0};
+//	for(float i=-20;i<32;++i){
+//		if(i!=-20){
+//			State<2> s=sO+sI*i;
+//			t->addObstacle(s);
+//		}
+//	}
+//	sO[0]=-3/64.0;
+//	for(float i=0;i<32;++i){
+//			State<2> s=sO+sI*i;
+//			t->addObstacle(s);
+//	}
+//	t->updateRec();
 //	//print tree to check
 //	std::streamsize prev=std::cout.width(0);
 //	std::cout.flags(std::ios_base::right);
@@ -82,7 +88,7 @@ int main( int argc, const char* argv[] )
 	//Run algoclock_t tc;
 	clock_t tc = clock();
 	algo.setNewNeighboorCheck(true);
-	algo.setMinRGcalc(true);
+	//algo.setMinRGcalc(true,20.0);
 	if(init && algo.run()){
 		tc = clock() - tc;
 		printf ("It took me %d clicks (%f seconds).\n",(int)tc,((float)tc)/CLOCKS_PER_SEC);

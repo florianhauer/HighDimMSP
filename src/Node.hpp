@@ -15,6 +15,7 @@ template <unsigned int DIM> void Node<DIM>::clear(){
 			delete children_[i];
 			childExists_[i]=false;
 		}
+	isLeaf_=true;
 }
 
 template <unsigned int DIM> Node<DIM>* Node<DIM>::addChild(int i){

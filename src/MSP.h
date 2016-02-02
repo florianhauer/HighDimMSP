@@ -27,7 +27,7 @@ public:
 	void setAlpha(double a){m_alpha=a;}
 	void setEpsilon(double a){m_epsilon=a;}
 	void setSpeedUp(bool a){m_speed_up=a;}
-	void setMinRGcalc(bool a){m_minRGcalc=a;setNewNeighboorCheck(true);}
+	void setMinRGcalc(bool a,double inflation=1.0){m_minRGcalc=a;setNewNeighboorCheck(true);m_inflation=inflation;}
 	void setNewNeighboorCheck(bool a){m_newNeighboorCheck=a;}
 	void setMapLearning(bool a, int n=0, bool (*isObstacle)(State<DIM> s)=NULL);
 	bool isEpsilonObstacle(Node<DIM>* n);
@@ -37,6 +37,7 @@ protected:
 	void iterationDetails(astar::BasePath* result=NULL);
 	void drawTree(std::ostream& stream);
 	void drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size);
+	void drawTreeAsTree(std::ostream& stream, Key<DIM> k, Node<DIM>* n,int depth);
 	bool inPath(Key<DIM> pt,int size);
 	void reducedGraph();
 	bool neighboor(std::pair<Key<DIM>,int> &na,std::pair<Key<DIM>,int> &nb);
@@ -84,6 +85,7 @@ protected:
 	int m_nbDraw;
 
 	bool m_minRGcalc;
+	double m_inflation;
 	void exploreVertex(long hash);
 };
 

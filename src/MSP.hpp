@@ -20,6 +20,7 @@ template <unsigned int DIM> MSP<DIM>::MSP(Tree<DIM>* tree):m_tree(tree),m_reduce
 	m_path_found=false;
 	m_newNeighboorCheck=false;
 	m_minRGcalc=false;
+	m_inflation=1.0;
 	m_nbDraw=0;
 	m_isObstacle=NULL;
 	m_mapLearning=false;
@@ -452,7 +453,7 @@ template <unsigned int DIM> void MSP<DIM>::add_node_to_reduced_vertices(Node<DIM
 			m_nodesByDepth[i].push_back(coord);
 			m_hashToIndices.insert(std::pair<long,std::pair<int,int>>(hash(coord),std::pair<int,int>(i,j)));
 
-			m_graph.add_vertex(hash(coord),m_lambda2*(coord-m_end_coord).norm());  //TODO: use square of the cost to remove square roots
+			m_graph.add_vertex(hash(coord),m_inflation*m_lambda2*(coord-m_end_coord).norm());  //TODO: use square of the cost to remove square roots
 			std::pair<Key<DIM>,int> pair(coord,size);
 			if(is_start(pair)){
 				if(m_start_index!=-1){
@@ -679,22 +680,37 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 			ss << RESDIR << "/iterationFiles/environment.tex";
 			std::fstream file(ss.str(),std::fstream::out);
 			file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
-					<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
+					<< "\\tikzstyle{treenodes}=[black,fill=white]" <<std::endl
 					<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
-					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+2 << ") {Environment};" <<std::endl
-					<< "\\draw[black,thick,fill=white] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
+					<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+4 << ") {Environment};" <<std::endl
+					<< "\\draw[black,fill=white] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 			drawTree(file);
 			file << "\\end{tikzpicture}" << std::endl;
 			file.close();
+		}
+		{
+			std::stringstream ss;
+			ss << RESDIR << "/iterationFiles/iteration_tree" << m_nb_step << ".tex";
+			std::fstream file(ss.str(),std::fstream::out);
+			file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
+					<< "\\tikzstyle{treenodes}=[black,fill=white]" <<std::endl
+					<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
+					//<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()-1)+2 << ") {Iteration " << m_nb_step << "};" <<std::endl
+					<< "\\draw[white,fill=white] (0," << (1<<m_tree->getMaxDepth()-1) << ") rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << -2.1*(1<<m_tree->getMaxDepth()+1) << ")"
+					<< ";" << std::endl;
+			drawTreeAsTree(file,m_reducedGraphTree.getRootKey(), m_reducedGraphTree.getRoot(),0);
+			file << "\\end{tikzpicture}" << std::endl;
+			file.close();
+
 		}
 		std::stringstream ss;
 		ss << RESDIR << "/iterationFiles/iteration" << m_nb_step << ".tex";
 		std::fstream file(ss.str(),std::fstream::out);
 		file << "\\begin{tikzpicture}[scale=\\picScale*32/" << (1<<m_tree->getMaxDepth()+1) << "]" << std::endl
-				<< "\\tikzstyle{treenodes}=[black,thick,fill=white]" <<std::endl
+				<< "\\tikzstyle{treenodes}=[black,fill=white]" <<std::endl
 				<< "\\tikzstyle{every node}=[circle,draw,minimum size=2pt,inner sep=1pt];" <<std::endl
-				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+2 << ") {Iteration " << m_nb_step << "};" <<std::endl
-				<< "\\draw[black,thick,fill=blue] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
+				<< "\\node[rectangle,draw] at (" << (1<<m_tree->getMaxDepth()) << "," << (1<<m_tree->getMaxDepth()+1)+4 << ") {Iteration " << m_nb_step << "};" <<std::endl
+				<< "\\draw[black,fill=blue] (0,0) rectangle (" << (1<<m_tree->getMaxDepth()+1) << "," << (1<<m_tree->getMaxDepth()+1) << ");" <<std::endl;
 		if(m_newNeighboorCheck){
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
 				int nodeSize=m_tree->getSize(i);
@@ -722,7 +738,9 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 						file << "[green,thick]";
 					if(hash(m_nodesByDepth[i][j])==m_end_index)
 						file << "[red,thick]";
-					file << " at " << m_nodesByDepth[i][j] << " (" << hash(m_nodesByDepth[i][j]) << ") {" << hash(m_nodesByDepth[i][j]) << "};" << std::endl;
+					file << " at " << m_nodesByDepth[i][j] << " (" << hash(m_nodesByDepth[i][j]) << ") {"
+							//<< hash(m_nodesByDepth[i][j])
+							<< "};" << std::endl;
 				}
 			}
 			for(int i=0;i<m_tree->getMaxDepth()+1;++i){
@@ -782,21 +800,54 @@ template <unsigned int DIM> void MSP<DIM>::iterationDetails(astar::BasePath* res
 
 template <unsigned int DIM> void MSP<DIM>::drawTreeRec(std::ostream& stream, Key<DIM> k, Node<DIM>* n, int size){
 	if(n->isLeaf()){
-		if(isEpsilonObstacle(n)){
-			stream << "\\draw[treenodes, fill=red] "
-					<< k-(*(m_tree->getDirections()))[0]*size
-					<< " rectangle "
-					<< k+(*(m_tree->getDirections()))[0]*size
-					<< ";" << std::endl;
+			if(isEpsilonObstacle(n)){
+				stream << "\\draw[treenodes, fill=red] "
+						<< k-(*(m_tree->getDirections()))[0]*size
+						<< " rectangle "
+						<< k+(*(m_tree->getDirections()))[0]*size
+						<< ";" << std::endl;
+			}
+		}else{
+			int s=size>>1;
+			for(int i=0; i<TwoPow<DIM>::value;++i){
+				if(n->childExists(i)){
+					drawTreeRec(stream,k+(*(m_tree->getDirections()))[i]*s,n->getChild(i),s);
+				}
+			}
 		}
+}
+
+template <unsigned int DIM> void MSP<DIM>::drawTreeAsTree(std::ostream& stream, Key<DIM> k, Node<DIM>* n,int depth){
+	State<2> x={0.5,0.25};
+	State<2> y={0.5,-0.25};
+	State<2> layerInterval(0);
+	layerInterval[1]=-(1<<(m_tree->getMaxDepth()-1))*1.5;
+	int size=m_tree->getSize(k);
+	if(n->isLeaf()){
+		// \losange{center}{width}{height}
 	}else{
 		int s=size>>1;
 		for(int i=0; i<TwoPow<DIM>::value;++i){
 			if(n->childExists(i)){
-				drawTreeRec(stream,k+(*(m_tree->getDirections()))[i]*s,n->getChild(i),s);
+				drawTreeAsTree(stream,k+(*(m_tree->getDirections()))[i]*s,n->getChild(i),depth+1);
+			}
+		}
+		for(int i=0; i<TwoPow<DIM>::value;++i){
+			if(n->childExists(i)){
+				Key<DIM> kid=k+(*(m_tree->getDirections()))[i]*s;
+				stream << "\\draw " << x*k[0]+y*k[1]+layerInterval*depth << " -- " << x*kid[0]+y*kid[1]+layerInterval*(depth+1) << ";"<<std::endl;
 			}
 		}
 	}
+	stream << "\\losange[fill=red!"
+			<< (int)(m_tree->getNode(k)->getValue()*100)
+			<< "]{"
+			<< x*k[0]+y*k[1]+layerInterval*depth
+			<< "}{"
+			<< x[0]*size*1.5
+			<< "}{"
+			<< x[1]*size*1.5
+			<< "};" << std::endl;
 }
 
 template <unsigned int DIM> void MSP<DIM>::drawTree(std::ostream& stream){

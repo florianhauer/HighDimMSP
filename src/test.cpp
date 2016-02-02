@@ -100,7 +100,7 @@ template<unsigned int DIM, unsigned int DEPTH> State<3> createMapRunMSPRunAs(){
 				algo2.clear();
 				MSP<DIM> algo3(t);
 				init=algo3.init(start,goal);
-				algo3.setMinRGcalc(true);
+				algo3.setMinRGcalc(true,10.0);
 				tc = clock();
 				if(init && algo3.run()){
 					tc = clock() - tc;
