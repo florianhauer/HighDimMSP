@@ -11,6 +11,9 @@ TARGET_LINK_LIBRARIES(sampling2D)
 add_executable (test test.cpp)
 TARGET_LINK_LIBRARIES(test)
 
+add_executable (alphaAnalysis alphaAnalysis.cpp)
+TARGET_LINK_LIBRARIES(alphaAnalysis)
+
 install(DIRECTORY . DESTINATION include/msp
 	FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY . DESTINATION include/msp
